@@ -211,10 +211,10 @@ test "decode_floats" {
   let decoder_pi = Decoder::new(float_pi_data)
   let (_, value_pi) = decoder_pi.decode()
   // First inspect the value to see what we get
-  inspect(value_pi, content="MFloat(2.5574005185030673e+224)")
+  inspect(value_pi, content="MFloat(3.14159)")
   let decoder_neg = Decoder::new(float_neg_data)
   let (_, value_neg) = decoder_neg.decode()
-  inspect(value_neg, content="MFloat(6.01e-321)")
+  inspect(value_neg, content="MFloat(-2.5)")
   let decoder_zero = Decoder::new(float_zero_data)
   let (_, value_zero) = decoder_zero.decode()
   inspect(value_zero, content="MFloat(0)")

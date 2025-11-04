@@ -311,11 +311,15 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_INT16, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [b1, b2, .. rest2] => {
+        [u16be(value), .. rest2] => {
           self.update_view(rest2)
-          let value = (b1.to_int() << 8) | b2.to_int()
-          // Convert to signed int16
-          let signed_value = if value >= 32768 { value - 65536 } else { value }
+          // Convert unsigned 16-bit to signed: check if high bit is set
+          let unsigned_int = value.reinterpret_as_int()
+          let signed_value = if unsigned_int >= 32768 {
+            unsigned_int - 65536
+          } else {
+            unsigned_int
+          }
           MInt(signed_value)
         }
         _ => fail("Failed to read INT16 value")
@@ -421,9 +425,9 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     }
 
     // Double/Float
-    [CODE_DOUBLE_LITTLE | CODE_DOUBLE_BIG, .. rest] => {
+    [CODE_DOUBLE_LITTLE | CODE_DOUBLE_BIG as code, .. rest] => {
       self.update_view(rest)
-      self.decode_double()
+      self.decode_double(code == CODE_DOUBLE_BIG)
     }
 
     // Double Arrays with 8-bit count
@@ -483,10 +487,9 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_SHARED16, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [b1, b2, .. rest2] => {
+        [u16be(index), .. rest2] => {
           self.update_view(rest2)
-          let index = (b1.to_int() << 8) | b2.to_int()
-          get_shared_object(self, index)
+          get_shared_object(self, index.reinterpret_as_int())
         }
         _ => fail("Failed to read SHARED16 index")
       }
@@ -571,16 +574,30 @@ fn Decoder::decode_string_with_length(
 // }
 
 ///|
-fn Decoder::decode_double(self : Self) -> MarshalValue raise {
-  match self.view() {
-    [u64be(value), .. rest] => {
-      self.update_view(rest)
-      let marshal_value = MFloat(value.reinterpret_as_double())
-      self.add_shared_object(marshal_value)
-      marshal_value
+fn Decoder::decode_double(
+  self : Self,
+  is_big_endian : Bool,
+) -> MarshalValue raise {
+  let value = if is_big_endian {
+    match self.view() {
+      [u64be(v), .. rest] => {
+        self.update_view(rest)
+        v
+      }
+      _ => fail("Failed to parse double (big-endian)")
     }
-    _ => fail("Failed to parse double")
+  } else {
+    match self.view() {
+      [u64le(v), .. rest] => {
+        self.update_view(rest)
+        v
+      }
+      _ => fail("Failed to parse double (little-endian)")
+    }
   }
+  let marshal_value = MFloat(value.reinterpret_as_double())
+  self.add_shared_object(marshal_value)
+  marshal_value
 }
 
 ///|
@@ -591,27 +608,31 @@ fn Decoder::decode_double_array(
 ) -> MarshalValue raise {
   let doubles = Array::new()
 
-  // Read all doubles
+  // Read all doubles using pattern matching with u64be/u64le
   for i = 0; i < count; i = i + 1 {
-    let view = self.view()
-    guard view.length() >= 8 else {
-      fail("Insufficient data for double at index \{i} in array")
-    }
-
-    // Read 8 bytes for the double
-    let mut value : UInt64 = 0UL
-    if is_big_endian {
-      // Big-endian: most significant byte first
-      for j = 0; j < 8; j = j + 1 {
-        value = (value << 8) | view[j].to_uint64()
+    let value = if is_big_endian {
+      match self.view() {
+        [u64be(v), .. rest] => {
+          self.update_view(rest)
+          v
+        }
+        _ =>
+          fail(
+            "Insufficient data for double at index \{i} in array (big-endian)",
+          )
       }
     } else {
-      // Little-endian: least significant byte first
-      for j = 0; j < 8; j = j + 1 {
-        value = value | (view[j].to_uint64() << (j * 8))
+      match self.view() {
+        [u64le(v), .. rest] => {
+          self.update_view(rest)
+          v
+        }
+        _ =>
+          fail(
+            "Insufficient data for double at index \{i} in array (little-endian)",
+          )
       }
     }
-    self.update_view(view[8:])
     let double_val = value.reinterpret_as_double()
     doubles.push(double_val)
   }

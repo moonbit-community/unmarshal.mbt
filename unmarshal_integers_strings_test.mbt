@@ -80,7 +80,7 @@ test "decode_small_strings" {
   inspect(
     value_a,
     content=(
-      #|MString(b"\x61")
+      #|MString(b"a")
     ),
   )
   let decoder_hello = Decoder::new(string_hello_data)
@@ -88,7 +88,7 @@ test "decode_small_strings" {
   inspect(
     value_hello,
     content=(
-      #|MString(b"\x48\x65\x6c\x6c\x6f")
+      #|MString(b"Hello")
     ),
   )
   let decoder_31 = Decoder::new(string_31chars_data)
@@ -172,7 +172,7 @@ test "decode_special_strings" {
   inspect(
     value_special,
     content=(
-      #|MString(b"\x48\x65\x6c\x6c\x6f\x0a\x57\x6f\x72\x6c\x64\x09\x21")
+      #|MString(b"Hello\x0aWorld\x09!")
     ),
   )
 
@@ -230,7 +230,7 @@ test "decode_tuple" {
   inspect(
     value_hello_42,
     content=(
-      #|MBlock(tag=0, [MString(b"\x48\x65\x6c\x6c\x6f"), MInt(42)])
+      #|MBlock(tag=0, [MString(b"Hello"), MInt(42)])
     ),
   )
 }

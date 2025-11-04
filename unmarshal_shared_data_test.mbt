@@ -9,7 +9,7 @@ test "decode_shared_string_tuple" {
   inspect(
     value,
     content=(
-      #|MBlock(tag=0, [MString(b"\x73\x68\x61\x72\x65\x64"), MString(b"\x73\x68\x61\x72\x65\x64")])
+      #|MBlock(tag=0, [MString(b"shared"), MString(b"shared")])
     ),
   )
 }
@@ -34,7 +34,7 @@ test "decode_shared_nested_tuple" {
   inspect(
     value,
     content=(
-      #|MBlock(tag=0, [MBlock(tag=0, [MString(b"\x74\x65\x73\x74"), MInt(42)]), MString(b"\x74\x65\x73\x74")])
+      #|MBlock(tag=0, [MBlock(tag=0, [MString(b"test"), MInt(42)]), MString(b"test")])
     ),
   )
 }
@@ -47,7 +47,7 @@ test "decode_triple_shared_middle" {
   inspect(
     value,
     content=(
-      #|MBlock(tag=0, [MString(b"\x66\x69\x72\x73\x74"), MString(b"\x6d\x69\x64\x64\x6c\x65"), MString(b"\x66\x69\x72\x73\x74")])
+      #|MBlock(tag=0, [MString(b"first"), MString(b"middle"), MString(b"first")])
     ),
   )
 }
@@ -127,7 +127,7 @@ test "verify_shared_indices" {
   inspect(
     value1,
     content=(
-      #|MBlock(tag=0, [MString(b"\x73\x68\x61\x72\x65\x64"), MString(b"\x73\x68\x61\x72\x65\x64")])
+      #|MBlock(tag=0, [MString(b"shared"), MString(b"shared")])
     ),
   )
   match value1 {

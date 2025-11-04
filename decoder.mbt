@@ -140,7 +140,7 @@ pub fn Decoder::new(data : Bytes) -> Self {
 }
 
 ///|
-fn Decoder::view(self : Self) -> @bytes.View {
+fn Decoder::view(self : Self) -> BytesView {
   self.data[self.position:]
 }
 
@@ -172,7 +172,7 @@ fn Decoder::update_view(self : Self, view : BytesView) -> Unit {
 ///|
 fn Decoder::add_shared_object(state : Decoder, value : MarshalValue) -> Unit {
   // TODO:upstream add length method for Map
-  let index = state.object_table.size()
+  let index = state.object_table.length()
   state.object_table[value] = index // This mutates the objects array
   state.object_array.push(value)
 }
@@ -241,11 +241,11 @@ fn get_shared_object(state : Decoder, index : Int) -> MarshalValue raise {
 pub fn Decoder::decode_header(data : Self) -> MarshalHeader raise {
   match data.view() {
     [
-      u32(0x8495A6BE | 0x8495A6BF as magic),
-      u32(data_len),
-      u32(num_objects),
-      u32(size_32),
-      u32(size_64),
+      u32be(0x8495A6BE | 0x8495A6BF as magic),
+      u32be(data_len),
+      u32be(num_objects),
+      u32be(size_32),
+      u32be(size_64),
       .. rest,
     ] => {
       // TODO(upstream): improve error message when missing `{` and `}`
@@ -326,7 +326,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_INT32, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u32(value), .. rest2] => {
+        [u32be(value), .. rest2] => {
           self.update_view(rest2)
           MInt(value.reinterpret_as_int())
         }
@@ -338,7 +338,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_INT64, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u64(value), .. rest2] => {
+        [u64be(value), .. rest2] => {
           self.update_view(rest2)
           MInt(value.reinterpret_as_int64().to_int())
         }
@@ -369,7 +369,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_STRING32, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u32(length), .. rest2] => {
+        [u32be(length), .. rest2] => {
           self.update_view(rest2)
           self.decode_string_with_length(length.reinterpret_as_int())
         }
@@ -381,7 +381,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_STRING64, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u64(length), .. rest2] => {
+        [u64be(length), .. rest2] => {
           self.update_view(rest2)
           self.decode_string_with_length(length.reinterpret_as_int64().to_int())
         }
@@ -393,7 +393,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_BLOCK32, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u32(header), .. rest2] => {
+        [u32be(header), .. rest2] => {
           self.update_view(rest2)
           // OCaml header format: size in high bits, tag in low 8 bits
           let hdr = header.reinterpret_as_int()
@@ -409,7 +409,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_BLOCK64, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u64(header), .. rest2] => {
+        [u64be(header), .. rest2] => {
           self.update_view(rest2)
           let hdr = header.reinterpret_as_int64().to_int()
           let tag = hdr & 0xFF
@@ -443,7 +443,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_DOUBLE_ARRAY32_LITTLE | CODE_DOUBLE_ARRAY32_BIG as code, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u32(count), .. rest2] => {
+        [u32be(count), .. rest2] => {
           self.update_view(rest2)
           self.decode_double_array(
             count.reinterpret_as_int(),
@@ -458,7 +458,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_DOUBLE_ARRAY64_LITTLE | CODE_DOUBLE_ARRAY64_BIG as code, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u64(count), .. rest2] => {
+        [u64be(count), .. rest2] => {
           self.update_view(rest2)
           self.decode_double_array(
             count.reinterpret_as_int64().to_int(),
@@ -494,7 +494,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_SHARED32, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u32(index), .. rest2] => {
+        [u32be(index), .. rest2] => {
           self.update_view(rest2)
           get_shared_object(self, index.reinterpret_as_int())
         }
@@ -504,7 +504,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_SHARED64, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u64(index), .. rest2] => {
+        [u64be(index), .. rest2] => {
           self.update_view(rest2)
           get_shared_object(self, index.reinterpret_as_int64().to_int())
         }
@@ -516,7 +516,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     [CODE_CUSTOM_LEN, .. rest] => {
       self.update_view(rest)
       match self.view() {
-        [u32(length), .. rest2] => {
+        [u32be(length), .. rest2] => {
           self.update_view(rest2)
           let len = length.reinterpret_as_int()
           self.decode_custom_block_with_length(len)
@@ -573,7 +573,7 @@ fn Decoder::decode_string_with_length(
 ///|
 fn Decoder::decode_double(self : Self) -> MarshalValue raise {
   match self.view() {
-    [u64(value), .. rest] => {
+    [u64be(value), .. rest] => {
       self.update_view(rest)
       let marshal_value = MFloat(value.reinterpret_as_double())
       self.add_shared_object(marshal_value)

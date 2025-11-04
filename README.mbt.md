@@ -91,7 +91,7 @@ test "decode_strings" {
   inspect(
     value,
     content=(
-      #|MString(b"\x48\x65\x6c\x6c\x6f")
+      #|MString(b"Hello")
     ),
   )
 }
@@ -178,13 +178,13 @@ test "shared_references" {
       inspect(
         fields[0],
         content=(
-          #|MString(b"\x73\x68\x61\x72\x65\x64")
+          #|MString(b"shared")
         ),
       )
       inspect(
         fields[1],
         content=(
-          #|MString(b"\x73\x68\x61\x72\x65\x64")
+          #|MString(b"shared")
         ),
       ) // Reference to first field
     }

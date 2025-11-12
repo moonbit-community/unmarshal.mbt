@@ -290,64 +290,28 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     }
 
     // INT8: 8-bit signed integer
-    [CODE_INT8, .. rest] => {
+    [CODE_INT8, i8be(value), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [b, .. rest2] => {
-          self.update_view(rest2)
-          // Convert unsigned byte to signed int8
-          let value = if b.to_int() >= 128 {
-            b.to_int() - 256
-          } else {
-            b.to_int()
-          }
-          MInt(value)
-        }
-        _ => fail("Failed to read INT8 value")
-      }
+      MInt(value)
     }
 
     // INT16: 16-bit signed integer (big-endian)
-    [CODE_INT16, .. rest] => {
+    [CODE_INT16, i16be(value), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u16be(value), .. rest2] => {
-          self.update_view(rest2)
-          // Convert unsigned 16-bit to signed: check if high bit is set
-          let unsigned_int = value.reinterpret_as_int()
-          let signed_value = if unsigned_int >= 32768 {
-            unsigned_int - 65536
-          } else {
-            unsigned_int
-          }
-          MInt(signed_value)
-        }
-        _ => fail("Failed to read INT16 value")
-      }
+      MInt(value)
     }
 
     // INT32: 32-bit signed integer (big-endian)
-    [CODE_INT32, .. rest] => {
+    [CODE_INT32, i32be(value), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u32be(value), .. rest2] => {
-          self.update_view(rest2)
-          MInt(value.reinterpret_as_int())
-        }
-        _ => fail("Failed to read INT32 value")
-      }
+      MInt(value)
     }
 
     // INT64: 64-bit signed integer (big-endian)
-    [CODE_INT64, .. rest] => {
+    [CODE_INT64, u64be(value), .. rest] => {
+      // TODO: accomodate 64-bit platforms
       self.update_view(rest)
-      match self.view() {
-        [u64be(value), .. rest2] => {
-          self.update_view(rest2)
-          MInt(value.reinterpret_as_int64().to_int())
-        }
-        _ => fail("Failed to read INT64 value")
-      }
+      MInt(value.reinterpret_as_int64().to_int())
     }
 
     // Small strings (length < 32): PREFIX_SMALL_STRING + length
@@ -358,70 +322,40 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     }
 
     // STRING8: String with 8-bit length
-    [CODE_STRING8, .. rest] => {
+    [CODE_STRING8, len_byte, .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [len_byte, .. rest2] => {
-          self.update_view(rest2)
-          self.decode_string_with_length(len_byte.to_int())
-        }
-        _ => fail("Failed to read STRING8 length")
-      }
+      self.decode_string_with_length(len_byte.to_int())
     }
 
     // STRING32: String with 32-bit length
-    [CODE_STRING32, .. rest] => {
+    [CODE_STRING32, u32be(length), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u32be(length), .. rest2] => {
-          self.update_view(rest2)
-          self.decode_string_with_length(length.reinterpret_as_int())
-        }
-        _ => fail("Failed to read STRING32 length")
-      }
+      self.decode_string_with_length(length.reinterpret_as_int())
     }
 
     // STRING64: String with 64-bit length (64-bit platforms only)
-    [CODE_STRING64, .. rest] => {
+    [CODE_STRING64, u64be(length), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u64be(length), .. rest2] => {
-          self.update_view(rest2)
-          self.decode_string_with_length(length.reinterpret_as_int64().to_int())
-        }
-        _ => fail("Failed to read STRING64 length")
-      }
+      self.decode_string_with_length(length.reinterpret_as_int64().to_int())
     }
 
     // BLOCK32: Block with 32-bit header
-    [CODE_BLOCK32, .. rest] => {
+    [CODE_BLOCK32, u32be(header), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u32be(header), .. rest2] => {
-          self.update_view(rest2)
-          // OCaml header format: size in high bits, tag in low 8 bits
-          let hdr = header.reinterpret_as_int()
-          let tag = hdr & 0xFF
-          let size = hdr >> 10 // Size is stored starting at bit 10
-          self.decode_block_with_tag_size(tag, size)
-        }
-        _ => fail("Failed to read BLOCK32 header")
-      }
+      // OCaml header format: size in high bits, tag in low 8 bits
+      let hdr = header.reinterpret_as_int()
+      let tag = hdr & 0xFF
+      let size = hdr >> 10 // Size is stored starting at bit 10
+      self.decode_block_with_tag_size(tag, size)
     }
 
     // BLOCK64: Block with 64-bit header (64-bit platforms only)
-    [CODE_BLOCK64, .. rest] => {
+    [CODE_BLOCK64, u64be(header), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u64be(header), .. rest2] => {
-          self.update_view(rest2)
-          let hdr = header.reinterpret_as_int64().to_int()
-          let tag = hdr & 0xFF
-          let size = hdr >> 10
-          self.decode_block_with_tag_size(tag, size)
-        }
-        _ => fail("Failed to read BLOCK64 header")
-      }
+      let hdr = header.reinterpret_as_int64().to_int()
+      let tag = hdr & 0xFF
+      let size = hdr >> 10
+      self.decode_block_with_tag_size(tag, size)
     }
 
     // Double/Float
@@ -431,101 +365,68 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     }
 
     // Double Arrays with 8-bit count
-    [CODE_DOUBLE_ARRAY8_LITTLE | CODE_DOUBLE_ARRAY8_BIG as code, .. rest] => {
+    [
+      CODE_DOUBLE_ARRAY8_LITTLE
+      | CODE_DOUBLE_ARRAY8_BIG as code,
+      count_byte,
+      .. rest,
+    ] => {
+      let count = count_byte.to_int()
       self.update_view(rest)
-      match self.view() {
-        [count_byte, .. rest2] => {
-          let count = count_byte.to_int()
-          self.update_view(rest2)
-          self.decode_double_array(count, code == CODE_DOUBLE_ARRAY8_BIG)
-        }
-        _ => fail("Failed to read double array count")
-      }
+      self.decode_double_array(count, code == CODE_DOUBLE_ARRAY8_BIG)
     }
 
     // Double Arrays with 32-bit count
-    [CODE_DOUBLE_ARRAY32_LITTLE | CODE_DOUBLE_ARRAY32_BIG as code, .. rest] => {
+    [
+      CODE_DOUBLE_ARRAY32_LITTLE
+      | CODE_DOUBLE_ARRAY32_BIG as code,
+      u32be(count),
+      .. rest,
+    ] => {
       self.update_view(rest)
-      match self.view() {
-        [u32be(count), .. rest2] => {
-          self.update_view(rest2)
-          self.decode_double_array(
-            count.reinterpret_as_int(),
-            code == CODE_DOUBLE_ARRAY32_BIG,
-          )
-        }
-        _ => fail("Failed to read double array count")
-      }
+      self.decode_double_array(
+        count.reinterpret_as_int(),
+        code == CODE_DOUBLE_ARRAY32_BIG,
+      )
     }
 
     // Double Arrays with 64-bit count
-    [CODE_DOUBLE_ARRAY64_LITTLE | CODE_DOUBLE_ARRAY64_BIG as code, .. rest] => {
+    [
+      CODE_DOUBLE_ARRAY64_LITTLE
+      | CODE_DOUBLE_ARRAY64_BIG as code,
+      u64be(count),
+      .. rest,
+    ] => {
       self.update_view(rest)
-      match self.view() {
-        [u64be(count), .. rest2] => {
-          self.update_view(rest2)
-          self.decode_double_array(
-            count.reinterpret_as_int64().to_int(),
-            code == CODE_DOUBLE_ARRAY64_BIG,
-          )
-        }
-        _ => fail("Failed to read double array count")
-      }
+      self.decode_double_array(
+        count.reinterpret_as_int64().to_int(),
+        code == CODE_DOUBLE_ARRAY64_BIG,
+      )
     }
 
     // Shared references
-    [CODE_SHARED8, .. rest] => {
+    [CODE_SHARED8, idx_byte, .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [idx_byte, .. rest2] => {
-          self.update_view(rest2)
-          get_shared_object(self, idx_byte.to_int())
-        }
-        _ => fail("Failed to read SHARED8 index")
-      }
+      get_shared_object(self, idx_byte.to_int())
     }
-    [CODE_SHARED16, .. rest] => {
+    [CODE_SHARED16, u16be(index), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u16be(index), .. rest2] => {
-          self.update_view(rest2)
-          get_shared_object(self, index.reinterpret_as_int())
-        }
-        _ => fail("Failed to read SHARED16 index")
-      }
+      get_shared_object(self, index.reinterpret_as_int())
     }
-    [CODE_SHARED32, .. rest] => {
+    [CODE_SHARED32, u32be(index), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u32be(index), .. rest2] => {
-          self.update_view(rest2)
-          get_shared_object(self, index.reinterpret_as_int())
-        }
-        _ => fail("Failed to read SHARED32 index")
-      }
+      get_shared_object(self, index.reinterpret_as_int())
     }
-    [CODE_SHARED64, .. rest] => {
+    [CODE_SHARED64, u64be(index), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u64be(index), .. rest2] => {
-          self.update_view(rest2)
-          get_shared_object(self, index.reinterpret_as_int64().to_int())
-        }
-        _ => fail("Failed to read SHARED64 index")
-      }
+      get_shared_object(self, index.reinterpret_as_int64().to_int())
     }
 
     // Custom blocks with length prefix
-    [CODE_CUSTOM_LEN, .. rest] => {
+    [CODE_CUSTOM_LEN, u32be(length), .. rest] => {
       self.update_view(rest)
-      match self.view() {
-        [u32be(length), .. rest2] => {
-          self.update_view(rest2)
-          let len = length.reinterpret_as_int()
-          self.decode_custom_block_with_length(len)
-        }
-        _ => fail("Failed to read custom block length")
-      }
+      let len = length.reinterpret_as_int()
+      self.decode_custom_block_with_length(len)
     }
 
     // Custom blocks with fixed size (not commonly used, but we support it)

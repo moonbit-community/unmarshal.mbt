@@ -3,7 +3,7 @@
 ///|
 test "unmarshal custom block Int32 zero" {
   // Int32 value 0
-  let data = @bytes.from_array([
+  let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
      0x00, 0x00, 0x00, 0x08, // Data length: 8 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
@@ -20,7 +20,7 @@ test "unmarshal custom block Int32 zero" {
   match value {
     MCustom(id, data) => {
       assert_eq(id, "_i")
-      assert_eq(data, @bytes.from_array([0x00, 0x00, 0x00, 0x00]))
+      assert_eq(data, Bytes::from_array([0x00, 0x00, 0x00, 0x00]))
     }
     _ => fail("Expected MCustom for Int32")
   }
@@ -29,7 +29,7 @@ test "unmarshal custom block Int32 zero" {
 ///|
 test "unmarshal custom block Int32 value 42" {
   // Int32 value 42
-  let data = @bytes.from_array([
+  let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
      0x00, 0x00, 0x00, 0x08, // Data length: 8 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
@@ -46,7 +46,7 @@ test "unmarshal custom block Int32 value 42" {
   match value {
     MCustom(id, data) => {
       assert_eq(id, "_i")
-      assert_eq(data, @bytes.from_array([0x00, 0x00, 0x00, 0x2a]))
+      assert_eq(data, Bytes::from_array([0x00, 0x00, 0x00, 0x2a]))
       // Verify the value is 42 (big-endian)
       let val = (data[0].to_int() << 24) |
         (data[1].to_int() << 16) |
@@ -61,7 +61,7 @@ test "unmarshal custom block Int32 value 42" {
 ///|
 test "unmarshal custom block Int32 negative" {
   // Int32 value -42
-  let data = @bytes.from_array([
+  let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
      0x00, 0x00, 0x00, 0x08, // Data length: 8 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
@@ -76,7 +76,7 @@ test "unmarshal custom block Int32 negative" {
   match value {
     MCustom(id, data) => {
       assert_eq(id, "_i")
-      assert_eq(data, @bytes.from_array([0xff, 0xff, 0xff, 0xd6]))
+      assert_eq(data, Bytes::from_array([0xff, 0xff, 0xff, 0xd6]))
     }
     _ => fail("Expected MCustom for Int32")
   }
@@ -85,7 +85,7 @@ test "unmarshal custom block Int32 negative" {
 ///|
 test "unmarshal custom block Int64" {
   // Int64 value 1000000
-  let data = @bytes.from_array([
+  let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
      0x00, 0x00, 0x00, 0x0c, // Data length: 12 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
@@ -113,7 +113,7 @@ test "unmarshal custom block Int64" {
 ///|
 test "unmarshal custom block with length prefix" {
   // Using CODE_CUSTOM_LEN instead of CODE_CUSTOM_FIXED
-  let data = @bytes.from_array([
+  let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
      0x00, 0x00, 0x00, 0x0c, // Data length: 12 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
@@ -129,7 +129,7 @@ test "unmarshal custom block with length prefix" {
   match value {
     MCustom(id, data) => {
       assert_eq(id, "_i")
-      assert_eq(data, @bytes.from_array([0x12, 0x34, 0x56, 0x78]))
+      assert_eq(data, Bytes::from_array([0x12, 0x34, 0x56, 0x78]))
       // Verify the value
       let val = (data[0].to_int() << 24) |
         (data[1].to_int() << 16) |
@@ -144,7 +144,7 @@ test "unmarshal custom block with length prefix" {
 ///|
 test "unmarshal tuple with custom blocks" {
   // Tuple containing (Int32(42), "Hello")
-  let data = @bytes.from_array([
+  let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
      0x00, 0x00, 0x00, 0x10, // Data length: 16 bytes
      0x00, 0x00, 0x00, 0x02, // Number of objects: 2
@@ -168,7 +168,7 @@ test "unmarshal tuple with custom blocks" {
       match fields[0] {
         MCustom(id, data) => {
           assert_eq(id, "_i")
-          assert_eq(data, @bytes.from_array([0x00, 0x00, 0x00, 0x2a]))
+          assert_eq(data, Bytes::from_array([0x00, 0x00, 0x00, 0x2a]))
         }
         _ => fail("Expected MCustom for first tuple element")
       }
@@ -186,7 +186,7 @@ test "unmarshal tuple with custom blocks" {
 ///|
 test "unmarshal nativeint custom block" {
   // Nativeint value 42 (on 64-bit platform)
-  let data = @bytes.from_array([
+  let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
      0x00, 0x00, 0x00, 0x0c, // Data length: 12 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
@@ -212,7 +212,7 @@ test "unmarshal nativeint custom block" {
 ///|
 test "unmarshal custom block Int32 max value" {
   // Int32.max_int = 2147483647 (0x7FFFFFFF)
-  let data = @bytes.from_array([
+  let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
      0x00, 0x00, 0x00, 0x08, // Data length: 8 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
@@ -227,7 +227,7 @@ test "unmarshal custom block Int32 max value" {
   match value {
     MCustom(id, data) => {
       assert_eq(id, "_i")
-      assert_eq(data, @bytes.from_array([0x7f, 0xff, 0xff, 0xff]))
+      assert_eq(data, Bytes::from_array([0x7f, 0xff, 0xff, 0xff]))
     }
     _ => fail("Expected MCustom for Int32")
   }
@@ -236,7 +236,7 @@ test "unmarshal custom block Int32 max value" {
 ///|
 test "unmarshal custom block Int32 min value" {
   // Int32.min_int = -2147483648 (0x80000000)
-  let data = @bytes.from_array([
+  let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
      0x00, 0x00, 0x00, 0x08, // Data length: 8 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
@@ -251,7 +251,7 @@ test "unmarshal custom block Int32 min value" {
   match value {
     MCustom(id, data) => {
       assert_eq(id, "_i")
-      assert_eq(data, @bytes.from_array([0x80, 0x00, 0x00, 0x00]))
+      assert_eq(data, Bytes::from_array([0x80, 0x00, 0x00, 0x00]))
     }
     _ => fail("Expected MCustom for Int32")
   }

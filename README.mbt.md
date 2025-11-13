@@ -16,10 +16,11 @@ This library provides a decoder for OCaml's Marshal format, which is OCaml's nat
 - **Blocks**: Tuples, records, variants, lists (tag-based structures)
 - **Float Arrays**: Native float arrays with proper endianness handling
 - **Shared References**: Handles OCaml's object sharing mechanism
+- **Custom Blocks**: Int32, Int64, Nativeint (with both fixed and length-prefixed formats)
 
 ### ⚠️ Not Yet Supported
 
-- Custom blocks (Int32, Int64, Nativeint, Bigarray)
+- Custom blocks with custom serializers (e.g., Bigarray)
 - Code pointers and closures
 - Big header format (for objects >4GB)
 
@@ -153,6 +154,64 @@ test "decode_float_array" {
 }
 ```
 
+#### Custom Blocks (Int32, Int64, Nativeint)
+
+OCaml's custom blocks allow specialized types like Int32, Int64, and Nativeint to be marshaled:
+
+```mbt
+///|
+test "decode_int32" {
+  // OCaml Int32.of_int 42
+  let int32_data : Bytes = [
+    b'\x84', b'\x95', b'\xa6', b'\xbe', b'\x00', b'\x00', b'\x00', b'\x08',
+    b'\x00', b'\x00', b'\x00', b'\x01', b'\x00', b'\x00', b'\x00', b'\x03',
+    b'\x00', b'\x00', b'\x00', b'\x03',
+    b'\x19', // CODE_CUSTOM_FIXED
+    b'\x5f', b'\x69', b'\x00', // "_i" identifier (null-terminated)
+    b'\x00', b'\x00', b'\x00', b'\x2a', // 42 in big-endian
+  ]
+  let decoder = @unmarshal.Decoder::new(int32_data)
+  let (_, value) = decoder.decode()
+  match value {
+    @unmarshal.MCustom(id, data) => {
+      inspect(id, content="_i")
+      // Extract the Int32 value (big-endian)
+      let val = (data[0].to_int() << 24) | (data[1].to_int() << 16) |
+                (data[2].to_int() << 8) | data[3].to_int()
+      inspect(val, content="42")
+    }
+    _ => abort("Expected MCustom")
+  }
+}
+
+///|
+test "decode_int64" {
+  // OCaml Int64.of_int 1000000
+  let int64_data : Bytes = [
+    b'\x84', b'\x95', b'\xa6', b'\xbe', b'\x00', b'\x00', b'\x00', b'\x0c',
+    b'\x00', b'\x00', b'\x00', b'\x01', b'\x00', b'\x00', b'\x00', b'\x03',
+    b'\x00', b'\x00', b'\x00', b'\x02',
+    b'\x19', // CODE_CUSTOM_FIXED
+    b'\x5f', b'\x6a', b'\x00', // "_j" identifier (null-terminated)
+    b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x0f', b'\x42', b'\x40', // 1000000
+  ]
+  let decoder = @unmarshal.Decoder::new(int64_data)
+  let (_, value) = decoder.decode()
+  match value {
+    @unmarshal.MCustom(id, _data) => {
+      inspect(id, content="_j")
+      // Custom blocks store the identifier and raw bytes
+    }
+    _ => abort("Expected MCustom")
+  }
+}
+```
+
+Custom block identifiers:
+- `"_i"` - Int32
+- `"_j"` - Int64
+- `"_n"` - Nativeint
+
 ### Working with Shared References
 
 OCaml's Marshal format supports object sharing to avoid duplicating data and handle cyclic structures:
@@ -212,8 +271,7 @@ Represents decoded OCaml values:
 - `MFloat(Double)` - Floating point
 - `MDoubleArray(Array[Double])` - Float array
 - `MBlock(tag~ : Int, Array[MarshalValue])` - Structured data (tuples, records, variants)
-- `MCustom(String, Bytes)` - Custom blocks (planned)
-- `MShared(Int)` - Shared reference
+- `MCustom(String, Bytes)` - Custom blocks (Int32, Int64, Nativeint, etc.)
 
 ### Decoder Functions
 
@@ -264,10 +322,11 @@ ocaml test_generator.ml > marshal_data_test.mbt
 ## Contributing
 
 Contributions are welcome! Areas that need work:
-- Custom block support (Int32, Int64, Nativeint)
+- Custom blocks with custom serializers (Bigarray, etc.)
 - Big header format for large objects
 - Better error messages with position information
 - More comprehensive test coverage
+- Performance optimizations
 
 ## License
 

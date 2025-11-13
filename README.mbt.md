@@ -198,9 +198,41 @@ test "decode_int64" {
   let decoder = @unmarshal.Decoder::new(int64_data)
   let (_, value) = decoder.decode()
   match value {
-    @unmarshal.MCustom(id, _data) => {
+    @unmarshal.MCustom(id, data) => {
       inspect(id, content="_j")
-      // Custom blocks store the identifier and raw bytes
+      // Extract the Int64 value (big-endian)
+      let val = (data[0].to_int64() << 56) | (data[1].to_int64() << 48) |
+                (data[2].to_int64() << 40) | (data[3].to_int64() << 32) |
+                (data[4].to_int64() << 24) | (data[5].to_int64() << 16) |
+                (data[6].to_int64() << 8) | data[7].to_int64()
+      inspect(val.to_int(), content="1000000")
+    }
+    _ => abort("Expected MCustom")
+  }
+}
+
+///|
+test "decode_nativeint" {
+  // OCaml Nativeint.of_int 42 (on 64-bit platform)
+  let nativeint_data : Bytes = [
+    b'\x84', b'\x95', b'\xa6', b'\xbe', b'\x00', b'\x00', b'\x00', b'\x0c',
+    b'\x00', b'\x00', b'\x00', b'\x01', b'\x00', b'\x00', b'\x00', b'\x03',
+    b'\x00', b'\x00', b'\x00', b'\x02',
+    b'\x19', // CODE_CUSTOM_FIXED
+    b'\x5f', b'\x6e', b'\x00', // "_n" identifier (null-terminated)
+    b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x2a', // 42
+  ]
+  let decoder = @unmarshal.Decoder::new(nativeint_data)
+  let (_, value) = decoder.decode()
+  match value {
+    @unmarshal.MCustom(id, data) => {
+      inspect(id, content="_n")
+      // Extract the Nativeint value (big-endian, 64-bit)
+      let val = (data[0].to_int64() << 56) | (data[1].to_int64() << 48) |
+                (data[2].to_int64() << 40) | (data[3].to_int64() << 32) |
+                (data[4].to_int64() << 24) | (data[5].to_int64() << 16) |
+                (data[6].to_int64() << 8) | data[7].to_int64()
+      inspect(val.to_int(), content="42")
     }
     _ => abort("Expected MCustom")
   }

@@ -19,29 +19,27 @@
 test "decode real-world OCaml marshal data" {
   // This blob has a MoonBit package format header before the OCaml marshal data
   // Find the OCaml magic number (0x84, 0x95, 0xa6, 0xbe or 0xbf)
-  let mut marshal_offset = 0
-  for i = 0; i < unmarshal_blob.length() - 4; i = i + 1 {
-    if unmarshal_blob[i] == b'\x84' &&
-       unmarshal_blob[i + 1] == b'\x95' &&
-       unmarshal_blob[i + 2] == b'\xa6' &&
-       (unmarshal_blob[i + 3] == b'\xbe' || unmarshal_blob[i + 3] == b'\xbf') {
-      marshal_offset = i
-      break
+  let marshal_offset = for i in 0..<unmarshal_blob.length() {
+    if unmarshal_blob[i:]
+      is ([b'\x84', b'\x95', b'\xa6', b'\xbe', ..]
+      | [b'\x84', b'\x95', b'\xa6', b'\xbf', ..]) {
+      break i
     }
+  } else {
+    fail("not found blob")
   }
-  
   println("Found OCaml marshal magic at offset: \{marshal_offset}")
-  
+
   // Extract the OCaml marshal data (from offset to end)
   let marshal_data = unmarshal_blob[marshal_offset:].to_bytes()
-  
+
   // Decode both header and value
   let decoder = Decoder::new(marshal_data)
   let (header, value) = decoder.decode()
-  
+
   // Verify header is valid
   assert_true(header.magic == 0x8495A6BE || header.magic == 0x8495A6BF)
-  
+
   // Print summary information
   println("Decoded real-world OCaml data:")
   println("  Header magic: 0x\{header.magic.to_string()}")
@@ -49,16 +47,17 @@ test "decode real-world OCaml marshal data" {
   println("  Num objects: \{header.num_objects}")
   println("  Size 32: \{header.size_32}")
   println("  Size 64: \{header.size_64}")
-  
+
   // Check what type of value we got (avoid printing full value due to circular refs)
   match value {
     MInt(i) => println("  Value: Integer(\{i})")
     MString(s) => println("  Value: String (length \{s.length()})")
     MFloat(f) => println("  Value: Float(\{f})")
-    MDoubleArray(arr) => println("  Value: DoubleArray (length \{arr.length()})")
-    MBlock(tag~, fields) => 
+    MDoubleArray(arr) =>
+      println("  Value: DoubleArray (length \{arr.length()})")
+    MBlock(tag~, fields) =>
       println("  Value: Block(tag=\{tag}, fields=\{fields.length()})")
-    MCustom(id, data) => 
+    MCustom(id, data) =>
       println("  Value: Custom(id=\{id}, data_len=\{data.length()})")
   }
 }
@@ -67,29 +66,27 @@ test "decode real-world OCaml marshal data" {
 test "decode real-world OCaml marshal data from unmarshal.core" {
   // This blob has a MoonBit package format header before the OCaml marshal data
   // Find the OCaml magic number (0x84, 0x95, 0xa6, 0xbe or 0xbf)
-  let mut marshal_offset = 0
-  for i = 0; i < unmarshal_core.length() - 4; i = i + 1 {
-    if unmarshal_core[i] == b'\x84' &&
-       unmarshal_core[i + 1] == b'\x95' &&
-       unmarshal_core[i + 2] == b'\xa6' &&
-       (unmarshal_core[i + 3] == b'\xbe' || unmarshal_core[i + 3] == b'\xbf') {
-      marshal_offset = i
-      break
+  let marshal_offset = for i in 0..<unmarshal_core.length() {
+    if unmarshal_core[i:]
+      is ([b'\x84', b'\x95', b'\xa6', b'\xbe', ..]
+      | [b'\x84', b'\x95', b'\xa6', b'\xbf', ..]) {
+      break i
     }
+  } else {
+    fail("not found core")
   }
-  
   println("Found OCaml marshal magic at offset: \{marshal_offset}")
-  
+
   // Extract the OCaml marshal data (from offset to end)
   let marshal_data = unmarshal_core[marshal_offset:].to_bytes()
-  
+
   // Decode header only - avoid decoding full value due to very large circular structure
   let decoder = Decoder::new(marshal_data)
   let header = decoder.decode_header()
-  
+
   // Verify header is valid
   assert_true(header.magic == 0x8495A6BE || header.magic == 0x8495A6BF)
-  
+
   // Print summary information
   println("Decoded real-world OCaml data from unmarshal.core:")
   println("  Header magic: 0x\{header.magic.to_string()}")

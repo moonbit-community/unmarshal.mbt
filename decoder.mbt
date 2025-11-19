@@ -149,7 +149,8 @@ fn Decoder::update_view(self : Self, view : BytesView) -> Unit {
   self.position = view.start_offset()
 }
 
-///| Adds a decoded object to the shared object table
+///|
+/// Adds a decoded object to the shared object table
 /// 
 /// Every decoded object (except shared references) is automatically registered
 /// in the shared object table. This enables OCaml's sharing mechanism where
@@ -236,13 +237,7 @@ pub fn Decoder::decode_header(data : Self) -> MarshalHeader raise {
     ] => {
       // TODO(upstream): improve error message when missing `{` and `}`
       data.update_view(rest)
-      MarshalHeader::{
-        magic,
-        data_len: data_len,
-        num_objects: num_objects,
-        size_32: size_32,
-        size_64: size_64,
-      }
+      MarshalHeader::{ magic, data_len, num_objects, size_32, size_64 }
     }
     _ => fail("Failed to parse marshal header")
   }
@@ -259,7 +254,7 @@ pub fn Decoder::decode(self : Self) -> (MarshalHeader, MarshalValue) raise {
 pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
   match self.view() {
     // Small integers (0-63): encoded as PREFIX_SMALL_INT + value
-    [(0x40..=0x7F as b), .. rest] => {
+    [0x40..=0x7F as b, .. rest] => {
       self.update_view(rest)
       let value = b.to_int() - PREFIX_SMALL_INT.to_int()
       let marshal_value = MInt(value)

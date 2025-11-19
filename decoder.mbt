@@ -148,7 +148,8 @@ fn Decoder::view(self : Self) -> BytesView {
 fn Decoder::update_view(self : Self, view : BytesView) -> Unit {
   self.position = view.start_offset()
 }
-/// Adds a decoded object to the shared object table
+
+///| Adds a decoded object to the shared object table
 /// 
 /// Every decoded object (except shared references) is automatically registered
 /// in the shared object table. This enables OCaml's sharing mechanism where
@@ -161,22 +162,13 @@ fn Decoder::update_view(self : Self, view : BytesView) -> Unit {
 /// ## Returns
 /// The index assigned to this object in the shared table
 /// 
-/// ## Example
-/// ``` text
-/// let state = { objects: Array::new(), position: 0 }
-/// let value = MInt(42)
-/// let index = state.add_shared_object(value) // Returns 0
-/// // Later: get_shared_object(state, 0) returns MInt(42)
-/// ```
-
-///|
 fn Decoder::add_shared_object(state : Decoder, value : MarshalValue) -> Unit {
-  // TODO:upstream add length method for Map
   let index = state.object_table.length()
   state.object_table[value] = index // This mutates the objects array
   state.object_array.push(value)
 }
 
+///|
 /// Retrieves a previously decoded object from the shared object table
 /// 
 /// Used when encountering a shared reference (tag_shared) that points back
@@ -192,20 +184,16 @@ fn Decoder::add_shared_object(state : Decoder, value : MarshalValue) -> Unit {
 /// 
 /// ## Panics
 /// Aborts if the index is out of bounds (invalid shared reference)
-
-///|
 fn get_shared_object(state : Decoder, index : Int) -> MarshalValue raise {
   if index >= state.object_array.length() {
     fail(
-      "Invalid shared object reference: index " +
-      index.to_string() +
-      " >= " +
-      state.object_array.length().to_string(),
+      "Invalid shared object reference: index \{index} >= \{state.object_array.length()}",
     )
   }
   state.object_array[index]
 }
 
+///|
 /// Parses the 20-byte OCaml Marshal format header
 /// 
 /// The header contains essential metadata about the marshaled data including
@@ -236,26 +224,24 @@ fn get_shared_object(state : Decoder, index : Int) -> MarshalValue raise {
 /// let header = parse_marshal_header(data[:])
 /// println("Data length: " + header.data_len.to_string())
 /// ```
-
-///|
 pub fn Decoder::decode_header(data : Self) -> MarshalHeader raise {
   match data.view() {
     [
       u32be(0x8495A6BE | 0x8495A6BF as magic),
-      u32be(data_len),
-      u32be(num_objects),
-      u32be(size_32),
-      u32be(size_64),
+      i32be(data_len),
+      i32be(num_objects),
+      i32be(size_32),
+      i32be(size_64),
       .. rest,
     ] => {
       // TODO(upstream): improve error message when missing `{` and `}`
       data.update_view(rest)
       MarshalHeader::{
         magic,
-        data_len: data_len.reinterpret_as_int(),
-        num_objects: num_objects.reinterpret_as_int(),
-        size_32: size_32.reinterpret_as_int(),
-        size_64: size_64.reinterpret_as_int(),
+        data_len: data_len,
+        num_objects: num_objects,
+        size_32: size_32,
+        size_64: size_64,
       }
     }
     _ => fail("Failed to parse marshal header")
@@ -273,7 +259,7 @@ pub fn Decoder::decode(self : Self) -> (MarshalHeader, MarshalValue) raise {
 pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
   match self.view() {
     // Small integers (0-63): encoded as PREFIX_SMALL_INT + value
-    [0x40..=0x7F as b, .. rest] => {
+    [(0x40..=0x7F as b), .. rest] => {
       self.update_view(rest)
       let value = b.to_int() - PREFIX_SMALL_INT.to_int()
       let marshal_value = MInt(value)
@@ -308,10 +294,10 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     }
 
     // INT64: 64-bit signed integer (big-endian)
-    [CODE_INT64, u64be(value), .. rest] => {
+    [CODE_INT64, i64be(value), .. rest] => {
       // TODO: accomodate 64-bit platforms
       self.update_view(rest)
-      MInt(value.reinterpret_as_int64().to_int())
+      MInt(value.to_int())
     }
 
     // Small strings (length < 32): PREFIX_SMALL_STRING + length

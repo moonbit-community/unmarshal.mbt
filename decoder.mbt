@@ -254,9 +254,9 @@ pub fn Decoder::decode(self : Self) -> (MarshalHeader, MarshalValue) raise {
 pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
   match self.view() {
     // Small integers (0-63): encoded as PREFIX_SMALL_INT + value
-    [0x40..=0x7F as b, .. rest] => {
+    [i8be(0x40..=0x7F as b), .. rest] => {
       self.update_view(rest)
-      let value = b.to_int() - PREFIX_SMALL_INT.to_int()
+      let value = b - PREFIX_SMALL_INT.to_int()
       let marshal_value = MInt(value)
       marshal_value
     }

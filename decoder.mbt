@@ -135,6 +135,7 @@ struct Decoder {
 }
 
 ///|
+/// TODO: support BytesView for zero-copy parsing
 pub fn Decoder::new(data : Bytes) -> Self {
   Decoder::{ object_table: {}, object_array: [], position: 0, data }
 }

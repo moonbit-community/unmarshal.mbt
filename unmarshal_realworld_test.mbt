@@ -19,19 +19,15 @@
 test "decode real-world OCaml marshal data" {
   // This blob has a MoonBit package format header before the OCaml marshal data
   // Find the OCaml magic number (0x84, 0x95, 0xa6, 0xbe or 0xbf)
-  let marshal_offset = for i in 0..<unmarshal_blob.length() {
-    if unmarshal_blob[i:]
-      is ([b'\x84', b'\x95', b'\xa6', b'\xbe', ..]
-      | [b'\x84', b'\x95', b'\xa6', b'\xbf', ..]) {
-      break i
-    }
-  } else {
+  guard unmarshal_blob
+    lexmatch? (_, "(\x84\x95\xa6\xbe|\x84\x95\xa6\xbf)" as header, _) else {
     fail("not found blob")
   }
-  println("Found OCaml marshal magic at offset: \{marshal_offset}")
+  // println("Found OCaml marshal magic at offset: \{marshal_offset}")
 
   // Extract the OCaml marshal data (from offset to end)
-  let marshal_data = unmarshal_blob[marshal_offset:].to_bytes()
+  // let marshal_data = unmarshal_blob[marshal_offset:].to_bytes()
+  let marshal_data = unmarshal_blob[header.start_offset():].to_bytes()
 
   // Decode both header and value
   let decoder = Decoder::new(marshal_data)

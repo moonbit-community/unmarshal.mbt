@@ -2,16 +2,15 @@
 package "bobzhang/unmarshal"
 
 // Values
-fn fib(Int) -> Int64
 
 // Errors
 
 // Types and methods
 type Decoder
-fn Decoder::decode(Self) -> (MarshalHeader, MarshalValue) raise
-fn Decoder::decode_header(Self) -> MarshalHeader raise
-fn Decoder::decode_value(Self) -> MarshalValue raise
-fn Decoder::new(Bytes) -> Self
+pub fn Decoder::decode(Self) -> (MarshalHeader, MarshalValue) raise
+pub fn Decoder::decode_header(Self) -> MarshalHeader raise
+pub fn Decoder::decode_value(Self) -> MarshalValue raise
+pub fn Decoder::new(Bytes) -> Self
 
 pub struct MarshalHeader {
   magic : UInt
@@ -20,9 +19,9 @@ pub struct MarshalHeader {
   size_32 : Int
   size_64 : Int
 }
-impl Eq for MarshalHeader
-impl Show for MarshalHeader
-impl ToJson for MarshalHeader
+pub impl Eq for MarshalHeader
+pub impl Show for MarshalHeader
+pub impl ToJson for MarshalHeader
 
 pub enum MarshalValue {
   MInt(Int)
@@ -32,10 +31,10 @@ pub enum MarshalValue {
   MBlock(tag~ : Int, Array[MarshalValue])
   MCustom(String, Bytes)
 }
-impl Eq for MarshalValue
-impl Hash for MarshalValue
-impl Show for MarshalValue
-impl ToJson for MarshalValue
+pub impl Eq for MarshalValue
+pub impl Hash for MarshalValue
+pub impl Show for MarshalValue
+pub impl ToJson for MarshalValue
 
 // Type aliases
 

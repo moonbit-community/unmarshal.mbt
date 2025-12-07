@@ -1,6 +1,7 @@
 {
   "is-main": true,
   "import": [
-    "bobzhang/unmarshal"
+    "bobzhang/unmarshal",
+    "bobzhang/unmarshal/dot"
   ]
 }

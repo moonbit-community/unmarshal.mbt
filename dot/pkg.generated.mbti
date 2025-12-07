@@ -1,0 +1,24 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/unmarshal/dot"
+
+import(
+  "bobzhang/unmarshal"
+)
+
+// Values
+pub fn marshal_to_dot(@unmarshal.MarshalValue) -> String
+
+// Errors
+
+// Types and methods
+type DotBuilder
+pub fn DotBuilder::add_edge(Self, String, String, String) -> Unit
+pub fn DotBuilder::add_node(Self, String, String) -> Unit
+pub fn DotBuilder::fresh_id(Self) -> String
+pub fn DotBuilder::new() -> Self
+pub fn DotBuilder::to_dot(Self) -> String
+
+// Type aliases
+
+// Traits
+

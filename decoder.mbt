@@ -1,27 +1,24 @@
 // Prefix tags for compact representations
 
 ///|
-const PREFIX_SMALL_INT : Byte = 0x40
+// const PREFIX_SMALL_STRING : Byte = 0x20
 
 ///|
-const PREFIX_SMALL_STRING : Byte = 0x20
-
-///|
-const PREFIX_SMALL_BLOCK : Byte = 0x80
+// const PREFIX_SMALL_BLOCK : Byte = 0x80
 
 // Code tags for various data types
 
 ///|
-const CODE_INT8 : Byte = 0x00
+// const CODE_INT8 : Byte = 0x00
 
 ///|
-const CODE_INT16 : Byte = 0x01
+// const CODE_INT16 : Byte = 0x01
 
 ///|
-const CODE_INT32 : Byte = 0x02
+// const CODE_INT32 : Byte = 0x02
 
 ///|
-const CODE_INT64 : Byte = 0x03
+// const CODE_INT64 : Byte = 0x03
 
 ///|
 const CODE_SHARED8 : Byte = 0x04
@@ -237,7 +234,7 @@ pub fn Decoder::decode_header(data : Self) -> MarshalHeader raise {
     ] => {
       // TODO(upstream): improve error message when missing `{` and `}`
       data.update_view(rest)
-      MarshalHeader::{ magic, data_len, num_objects, size_32, size_64 }
+      { magic, data_len, num_objects, size_32, size_64 }
     }
     _ => fail("Failed to parse marshal header")
   }
@@ -256,40 +253,29 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     // Small integers (0-63): encoded as PREFIX_SMALL_INT + value
     [0x40..=0x7F as b, .. rest] => {
       self.update_view(rest)
-      let value = b.to_int() - PREFIX_SMALL_INT.to_int()
-      let marshal_value = MInt(value)
-      marshal_value
+      let value = b.to_int() - 0x40
+      MInt(value)
     }
-
-    // Small blocks (tag < 16, size < 8): PREFIX_SMALL_BLOCK + tag + (size << 4)
-    [0x80..=0xFF as b, .. rest] => {
-      self.update_view(rest)
-      let byte_val = b.to_int() - PREFIX_SMALL_BLOCK.to_int()
-      let tag = byte_val & 0x0F // Lower 4 bits
-      let size = byte_val >> 4 // Upper 4 bits
-      self.decode_block_with_tag_size(tag, size)
-    }
-
     // INT8: 8-bit signed integer
-    [CODE_INT8, i8be(value), .. rest] => {
+    [0x00, i8be(value), .. rest] => {
       self.update_view(rest)
       MInt(value)
     }
 
     // INT16: 16-bit signed integer (big-endian)
-    [CODE_INT16, i16be(value), .. rest] => {
+    [0x01, i16be(value), .. rest] => {
       self.update_view(rest)
       MInt(value)
     }
 
     // INT32: 32-bit signed integer (big-endian)
-    [CODE_INT32, i32be(value), .. rest] => {
+    [0x02, i32be(value), .. rest] => {
       self.update_view(rest)
       MInt(value)
     }
 
     // INT64: 64-bit signed integer (big-endian)
-    [CODE_INT64, i64be(value), .. rest] => {
+    [0x03, i64be(value), .. rest] => {
       // TODO: accomodate 64-bit platforms
       self.update_view(rest)
       MInt(value.to_int())
@@ -298,7 +284,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     // Small strings (length < 32): PREFIX_SMALL_STRING + length
     [0x20..=0x3F as b, .. rest] => {
       self.update_view(rest)
-      let len = b.to_int() - PREFIX_SMALL_STRING.to_int()
+      let len = b.to_int() - 0x20
       self.decode_string_with_length(len)
     }
 
@@ -319,7 +305,14 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
       self.update_view(rest)
       self.decode_string_with_length(length.reinterpret_as_int64().to_int())
     }
-
+    // Small blocks (tag < 16, size < 8): PREFIX_SMALL_BLOCK + tag + (size << 4)
+    [0x80..=0xFF as b, .. rest] => {
+      self.update_view(rest)
+      let byte_val = b.to_int() - 0x80
+      let tag = byte_val & 0x0F // Lower 4 bits
+      let size = byte_val >> 4 // Upper 4 bits
+      self.decode_block_with_tag_size(tag, size)
+    }
     // BLOCK32: Block with 32-bit header
     [CODE_BLOCK32, u32be(header), .. rest] => {
       self.update_view(rest)
@@ -488,10 +481,10 @@ fn Decoder::decode_double_array(
   count : Int,
   is_big_endian : Bool,
 ) -> MarshalValue raise {
-  let doubles = Array::new()
+  let doubles = []
 
   // Read all doubles using pattern matching with u64be/u64le
-  for i = 0; i < count; i = i + 1 {
+  for i in 0..<count {
     let value = if is_big_endian {
       match self.view() {
         [u64be(v), .. rest] => {
@@ -530,7 +523,7 @@ fn Decoder::decode_block_with_tag_size(
   size : Int,
 ) -> MarshalValue raise {
   // Create placeholder for recursive structures
-  let fields = Array::new()
+  let fields = []
   let marshal_value = MBlock(tag~, fields)
   self.add_shared_object(marshal_value)
 

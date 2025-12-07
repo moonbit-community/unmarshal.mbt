@@ -125,7 +125,6 @@ const CODE_CUSTOM_FIXED : Byte = 0x19
 
 ///|
 struct Decoder {
-  object_table : Map[MarshalValue, Int] // Shared object table - mutated via methods
   object_array : Array[MarshalValue] // Shared object array - mutated via methods
   mut position : Int // Current parsing position
   data : Bytes
@@ -133,7 +132,7 @@ struct Decoder {
 
 ///|
 pub fn Decoder::new(data : Bytes) -> Self {
-  Decoder::{ object_table: {}, object_array: [], position: 0, data }
+  Decoder::{ object_array: [], position: 0, data }
 }
 
 ///|
@@ -147,22 +146,20 @@ fn Decoder::update_view(self : Self, view : BytesView) -> Unit {
 }
 
 ///|
-/// Adds a decoded object to the shared object table
+/// Adds a decoded object to the shared object array
 /// 
 /// Every decoded object (except shared references) is automatically registered
-/// in the shared object table. This enables OCaml's sharing mechanism where
+/// in the shared object array. This enables OCaml's sharing mechanism where
 /// later references can point back to previously decoded objects.
 /// 
 /// ## Parameters
-/// - `state`: Decoder state containing the shared object table
+/// - `state`: Decoder state containing the shared object array
 /// - `value`: The decoded MarshalValue to register
 /// 
 /// ## Returns
-/// The index assigned to this object in the shared table
+/// Nothing – the decoder stores the value for future shared references
 /// 
 fn Decoder::add_shared_object(state : Decoder, value : MarshalValue) -> Unit {
-  let index = state.object_table.length()
-  state.object_table[value] = index // This mutates the objects array
   state.object_array.push(value)
 }
 

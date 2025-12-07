@@ -533,33 +533,6 @@ fn Decoder::decode_block_with_tag_size(
 }
 
 ///|
-// Helper function for decoding blocks - currently unused
-// fn Decoder::decode_block(self : Self) -> MarshalValue raise {
-//   match self.view() {
-//     [tag_byte, size_byte, .. rest] => {
-//       let tag = tag_byte.to_int()
-//       let size = size_byte.to_int()
-//       self.update_view(rest)
-//       self.decode_block_with_tag_size(tag, size)
-//     }
-//     _ => fail("Failed to parse block header")
-//   }
-// }
-
-///|
-// Helper function for decoding shared references - currently unused
-// fn Decoder::decode_shared_reference(self : Self) -> MarshalValue raise {
-//   match self.view() {
-//     [u32(index), .. rest] => {
-//       self.update_view(rest)
-//       let idx = index.reinterpret_as_int()
-//       get_shared_object(self, idx)
-//     }
-//     _ => fail("Failed to parse shared reference index")
-//   }
-// }
-
-///|
 fn Decoder::decode_custom_block_with_length(
   self : Self,
   total_length : Int,

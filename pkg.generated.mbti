@@ -2,6 +2,7 @@
 package "bobzhang/unmarshal"
 
 // Values
+pub fn marshal_to_dot(MarshalValue) -> String
 
 // Errors
 
@@ -11,6 +12,13 @@ pub fn Decoder::decode(Self) -> (MarshalHeader, MarshalValue) raise
 pub fn Decoder::decode_header(Self) -> MarshalHeader raise
 pub fn Decoder::decode_value(Self) -> MarshalValue raise
 pub fn Decoder::new(Bytes) -> Self
+
+type DotBuilder
+pub fn DotBuilder::add_edge(Self, String, String, String) -> Unit
+pub fn DotBuilder::add_node(Self, String, String) -> Unit
+pub fn DotBuilder::fresh_id(Self) -> String
+pub fn DotBuilder::new() -> Self
+pub fn DotBuilder::to_dot(Self) -> String
 
 pub struct MarshalHeader {
   magic : UInt

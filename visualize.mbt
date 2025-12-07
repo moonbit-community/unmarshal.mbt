@@ -4,8 +4,8 @@
 ///|
 /// Convert a MarshalValue to DOT format
 /// Returns a DOT string that can be rendered with Graphviz
-pub fn marshal_to_dot(value : @unmarshal.MarshalValue) -> String {
-  let builder = DotBuilder::new()
+pub fn marshal_to_dot(value : MarshalValue) -> String {
+  let builder = @dot.DotBuilder::new()
   let _ = add_value_to_dot(builder, value)
   builder.to_dot()
 }
@@ -13,10 +13,7 @@ pub fn marshal_to_dot(value : @unmarshal.MarshalValue) -> String {
 ///|
 /// Recursively add a MarshalValue and its children to the DOT builder
 /// Returns the node ID for this value
-fn add_value_to_dot(
-  builder : DotBuilder,
-  value : @unmarshal.MarshalValue,
-) -> String {
+fn add_value_to_dot(builder : @dot.DotBuilder, value : MarshalValue) -> String {
   match value {
     MInt(n) => {
       let id = builder.fresh_id()

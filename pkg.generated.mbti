@@ -2,6 +2,7 @@
 package "bobzhang/unmarshal"
 
 // Values
+pub fn marshal_to_dot(MarshalValue) -> String
 
 // Errors
 

@@ -1,4 +1,7 @@
 {
+    "import": [
+        "bobzhang/unmarshal/dot"
+    ],
     "pre-build": [
         {
             "input" : "unmarshal.mi",

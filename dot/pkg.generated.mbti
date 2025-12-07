@@ -1,12 +1,7 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/unmarshal/dot"
 
-import(
-  "bobzhang/unmarshal"
-)
-
 // Values
-pub fn marshal_to_dot(@unmarshal.MarshalValue) -> String
 
 // Errors
 

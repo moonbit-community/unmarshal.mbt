@@ -1,0 +1,17 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  hub [label="Central Hub"];
+  spoke_0 [label="Spoke 0"];
+  spoke_1 [label="Spoke 1"];
+  spoke_2 [label="Spoke 2"];
+  spoke_3 [label="Spoke 3"];
+  spoke_4 [label="Spoke 4"];
+
+  hub -> spoke_0;
+  hub -> spoke_1;
+  hub -> spoke_2;
+  hub -> spoke_3;
+  hub -> spoke_4;
+}

@@ -1,0 +1,31 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  a [label="Node A"];
+  b [label="Node B"];
+  c [label="Node C"];
+  d [label="Node D"];
+  e [label="Node E"];
+
+  a -> b [label="0→1"];
+  a -> c [label="0→2"];
+  a -> d [label="0→3"];
+  a -> e [label="0→4"];
+  b -> a [label="1→0"];
+  b -> c [label="1→2"];
+  b -> d [label="1→3"];
+  b -> e [label="1→4"];
+  c -> a [label="2→0"];
+  c -> b [label="2→1"];
+  c -> d [label="2→3"];
+  c -> e [label="2→4"];
+  d -> a [label="3→0"];
+  d -> b [label="3→1"];
+  d -> c [label="3→2"];
+  d -> e [label="3→4"];
+  e -> a [label="4→0"];
+  e -> b [label="4→1"];
+  e -> c [label="4→2"];
+  e -> d [label="4→3"];
+}

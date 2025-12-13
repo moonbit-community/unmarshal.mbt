@@ -1,0 +1,12 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  alice [label="Alice"];
+  bob [label="Bob"];
+
+  alice -> bob [label="email"];
+  alice -> bob [label="phone"];
+  alice -> bob [label="slack"];
+  bob -> alice [label="reply"];
+}

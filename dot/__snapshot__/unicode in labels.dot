@@ -1,0 +1,13 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  emoji [label="😀 🎉 ✨"];
+  chinese [label="中文测试"];
+  arabic [label="مرحبا"];
+  math [label="∑ ∫ ∂ √"];
+
+  emoji -> chinese [label="→"];
+  chinese -> arabic [label="→"];
+  arabic -> math [label="→"];
+}

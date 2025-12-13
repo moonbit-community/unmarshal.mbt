@@ -3,108 +3,60 @@
 
 ///|
 /// Test 1: Simple linear chain
-test "linear chain graph" {
+test "linear chain graph" (it : @test.Test) {
   let builder = DotBuilder::new()
-  builder.add_node(id="a", label="Start")
-  builder.add_node(id="b", label="Middle")
-  builder.add_node(id="c", label="End")
-  builder.add_edge(src="a", dst="b", label="→")
-  builder.add_edge(src="b", dst="c", label="→")
+  builder
+  ..add_node(id="a", label="Start")
+  ..add_node(id="b", label="Middle")
+  ..add_node(id="c", label="End")
+  ..add_edge(src="a", dst="b", label="→")
+  ..add_edge(src="b", dst="c", label="→")
   let dot = builder.to_dot()
-  inspect(
-    dot,
-    content=(
-      #|digraph Marshal {
-      #|  rankdir=LR;
-      #|  node [shape=box, style=rounded];
-      #|
-      #|  a [label="Start"];
-      #|  b [label="Middle"];
-      #|  c [label="End"];
-      #|
-      #|  a -> b [label="→"];
-      #|  b -> c [label="→"];
-      #|}
-      #|
-    ),
-  )
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 2: Binary tree structure
-test "binary tree graph" {
+test "binary tree graph" (it : @test.Test) {
   let builder = DotBuilder::new()
-  builder.add_node(id="root", label="Root")
-  builder.add_node(id="left", label="Left Child")
-  builder.add_node(id="right", label="Right Child")
-  builder.add_node(id="ll", label="Left-Left")
-  builder.add_node(id="lr", label="Left-Right")
-  builder.add_edge(src="root", dst="left", label="L")
-  builder.add_edge(src="root", dst="right", label="R")
-  builder.add_edge(src="left", dst="ll", label="L")
-  builder.add_edge(src="left", dst="lr", label="R")
+  builder
+  ..add_node(id="root", label="Root")
+  ..add_node(id="left", label="Left Child")
+  ..add_node(id="right", label="Right Child")
+  ..add_node(id="ll", label="Left-Left")
+  ..add_node(id="lr", label="Left-Right")
+  ..add_edge(src="root", dst="left", label="L")
+  ..add_edge(src="root", dst="right", label="R")
+  ..add_edge(src="left", dst="ll", label="L")
+  ..add_edge(src="left", dst="lr", label="R")
   let dot = builder.to_dot()
-  inspect(
-    dot,
-    content=(
-      #|digraph Marshal {
-      #|  rankdir=LR;
-      #|  node [shape=box, style=rounded];
-      #|
-      #|  root [label="Root"];
-      #|  left [label="Left Child"];
-      #|  right [label="Right Child"];
-      #|  ll [label="Left-Left"];
-      #|  lr [label="Left-Right"];
-      #|
-      #|  root -> left [label="L"];
-      #|  root -> right [label="R"];
-      #|  left -> ll [label="L"];
-      #|  left -> lr [label="R"];
-      #|}
-      #|
-    ),
-  )
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 3: Cyclic graph (circular reference)
-test "cyclic graph with self-loop" {
+test "cyclic graph with self-loop" (it : @test.Test) {
   let builder = DotBuilder::new()
-  builder.add_node(id="a", label="Node A")
-  builder.add_node(id="b", label="Node B")
-  builder.add_node(id="c", label="Node C")
+  builder
+  ..add_node(id="a", label="Node A")
+  ..add_node(id="b", label="Node B")
+  ..add_node(id="c", label="Node C")
   // Create a cycle
-  builder.add_edge(src="a", dst="b", label="1")
-  builder.add_edge(src="b", dst="c", label="2")
-  builder.add_edge(src="c", dst="a", label="back to A")
+  ..add_edge(src="a", dst="b", label="1")
+  ..add_edge(src="b", dst="c", label="2")
+  ..add_edge(src="c", dst="a", label="back to A")
   // Add a self-loop
-  builder.add_edge(src="b", dst="b", label="self")
+  ..add_edge(src="b", dst="b", label="self")
   let dot = builder.to_dot()
-  inspect(
-    dot,
-    content=(
-      #|digraph Marshal {
-      #|  rankdir=LR;
-      #|  node [shape=box, style=rounded];
-      #|
-      #|  a [label="Node A"];
-      #|  b [label="Node B"];
-      #|  c [label="Node C"];
-      #|
-      #|  a -> b [label="1"];
-      #|  b -> c [label="2"];
-      #|  c -> a [label="back to A"];
-      #|  b -> b [label="self"];
-      #|}
-      #|
-    ),
-  )
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 4: Star pattern (hub and spoke)
-test "star graph pattern" {
+test "star graph pattern" (it : @test.Test) {
   let builder = DotBuilder::new()
   builder.add_node(id="hub", label="Central Hub")
   for i = 0; i < 5; i = i + 1 {
@@ -113,165 +65,87 @@ test "star graph pattern" {
     builder.add_edge(src="hub", dst=spoke_id, label="")
   }
   let dot = builder.to_dot()
-  inspect(
-    dot,
-    content=(
-      #|digraph Marshal {
-      #|  rankdir=LR;
-      #|  node [shape=box, style=rounded];
-      #|
-      #|  hub [label="Central Hub"];
-      #|  spoke_0 [label="Spoke 0"];
-      #|  spoke_1 [label="Spoke 1"];
-      #|  spoke_2 [label="Spoke 2"];
-      #|  spoke_3 [label="Spoke 3"];
-      #|  spoke_4 [label="Spoke 4"];
-      #|
-      #|  hub -> spoke_0;
-      #|  hub -> spoke_1;
-      #|  hub -> spoke_2;
-      #|  hub -> spoke_3;
-      #|  hub -> spoke_4;
-      #|}
-      #|
-    ),
-  )
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 5: DAG (Directed Acyclic Graph) - dependency graph
-test "dependency dag" {
+test "dependency dag" (it : @test.Test) {
   let builder = DotBuilder::new()
-  builder.add_node(id="frontend", label="Frontend App")
-  builder.add_node(id="api", label="API Server")
-  builder.add_node(id="auth", label="Auth Service")
-  builder.add_node(id="db", label="Database")
-  builder.add_node(id="cache", label="Cache")
-  builder.add_edge(src="frontend", dst="api", label="HTTP")
-  builder.add_edge(src="api", dst="auth", label="verify")
-  builder.add_edge(src="api", dst="db", label="query")
-  builder.add_edge(src="api", dst="cache", label="get/set")
-  builder.add_edge(src="auth", dst="db", label="user lookup")
+  builder
+  ..add_node(id="frontend", label="Frontend App")
+  ..add_node(id="api", label="API Server")
+  ..add_node(id="auth", label="Auth Service")
+  ..add_node(id="db", label="Database")
+  ..add_node(id="cache", label="Cache")
+  ..add_edge(src="frontend", dst="api", label="HTTP")
+  ..add_edge(src="api", dst="auth", label="verify")
+  ..add_edge(src="api", dst="db", label="query")
+  ..add_edge(src="api", dst="cache", label="get/set")
+  ..add_edge(src="auth", dst="db", label="user lookup")
   let dot = builder.to_dot()
-  inspect(
-    dot,
-    content=(
-      #|digraph Marshal {
-      #|  rankdir=LR;
-      #|  node [shape=box, style=rounded];
-      #|
-      #|  frontend [label="Frontend App"];
-      #|  api [label="API Server"];
-      #|  auth [label="Auth Service"];
-      #|  db [label="Database"];
-      #|  cache [label="Cache"];
-      #|
-      #|  frontend -> api [label="HTTP"];
-      #|  api -> auth [label="verify"];
-      #|  api -> db [label="query"];
-      #|  api -> cache [label="get/set"];
-      #|  auth -> db [label="user lookup"];
-      #|}
-      #|
-    ),
-  )
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 6: Empty graph
-test "empty graph" {
+test "empty graph" (it : @test.Test) {
   let builder = DotBuilder::new()
   let dot = builder.to_dot()
-  inspect(
-    dot,
-    content=(
-      #|digraph Marshal {
-      #|  rankdir=LR;
-      #|  node [shape=box, style=rounded];
-      #|
-      #|
-      #|}
-      #|
-    ),
-  )
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 7: Graph with special characters in labels
-test "special characters in labels" {
+test "special characters in labels" (it : @test.Test) {
   let builder = DotBuilder::new()
-  builder.add_node(id="n1", label="Label with \"quotes\"")
-  builder.add_node(id="n2", label="Label with <brackets>")
-  builder.add_node(id="n3", label="Label with \n newline")
-  builder.add_edge(src="n1", dst="n2", label="edge → with → arrows")
-  builder.add_edge(src="n2", dst="n3", label="label & symbols")
+  builder
+  ..add_node(id="n1", label="Label with \"quotes\"")
+  ..add_node(id="n2", label="Label with <brackets>")
+  ..add_node(id="n3", label="Label with \n newline")
+  ..add_edge(src="n1", dst="n2", label="edge → with → arrows")
+  ..add_edge(src="n2", dst="n3", label="label & symbols")
   let dot = builder.to_dot()
-  inspect(
-    dot,
-    content=(
-      #|digraph Marshal {
-      #|  rankdir=LR;
-      #|  node [shape=box, style=rounded];
-      #|
-      #|  n1 [label="Label with \"quotes\""];
-      #|  n2 [label="Label with <brackets>"];
-      #|  n3 [label="Label with \n newline"];
-      #|
-      #|  n1 -> n2 [label="edge → with → arrows"];
-      #|  n2 -> n3 [label="label & symbols"];
-      #|}
-      #|
-    ),
-  )
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 8: Multi-edge graph (multiple edges between same nodes)
-test "multi-edge graph" {
+test "multi-edge graph" (it : @test.Test) {
   let builder = DotBuilder::new()
-  builder.add_node(id="alice", label="Alice")
-  builder.add_node(id="bob", label="Bob")
-  builder.add_edge(src="alice", dst="bob", label="email")
-  builder.add_edge(src="alice", dst="bob", label="phone")
-  builder.add_edge(src="alice", dst="bob", label="slack")
-  builder.add_edge(src="bob", dst="alice", label="reply")
+  builder
+  ..add_node(id="alice", label="Alice")
+  ..add_node(id="bob", label="Bob")
+  ..add_edge(src="alice", dst="bob", label="email")
+  ..add_edge(src="alice", dst="bob", label="phone")
+  ..add_edge(src="alice", dst="bob", label="slack")
+  ..add_edge(src="bob", dst="alice", label="reply")
   let dot = builder.to_dot()
-  inspect(
-    dot,
-    content=(
-      #|digraph Marshal {
-      #|  rankdir=LR;
-      #|  node [shape=box, style=rounded];
-      #|
-      #|  alice [label="Alice"];
-      #|  bob [label="Bob"];
-      #|
-      #|  alice -> bob [label="email"];
-      #|  alice -> bob [label="phone"];
-      #|  alice -> bob [label="slack"];
-      #|  bob -> alice [label="reply"];
-      #|}
-      #|
-    ),
-  )
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 9: Fresh ID generation
-test "fresh_id generates unique ids" {
+test "fresh_id generates unique ids" (it : @test.Test) {
   let builder = DotBuilder::new()
   let id1 = builder.fresh_id()
   let id2 = builder.fresh_id()
   let id3 = builder.fresh_id()
   // IDs should be in sequence
-  inspect(id1, content="n0")
-  inspect(id2, content="n1")
-  inspect(id3, content="n2")
+  it.write("id1: \{id1}\n")
+  it.write("id2: \{id2}\n")
+  it.write("id3: \{id3}\n")
+  it.snapshot(filename=it.name() + ".txt")
 }
 
 ///|
 /// Test 10: Large graph stress test (100 nodes)
-test "large graph with 100 nodes" {
+test "large graph with 100 nodes" (it : @test.Test) {
   let builder = DotBuilder::new()
   // Create a chain of 100 nodes
   for i = 0; i < 100; i = i + 1 {
@@ -282,16 +156,13 @@ test "large graph with 100 nodes" {
     }
   }
   let dot = builder.to_dot()
-  // Verify it starts and ends correctly
-  inspect(dot.contains("digraph G {"), content="false")
-  inspect(dot.contains("\"n0\" [label=\"Node 0\"]"), content="false")
-  inspect(dot.contains("\"n99\" [label=\"Node 99\"]"), content="false")
-  inspect(dot.contains("\"n98\" -> \"n99\" [label=\"\"]"), content="false")
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 11: Complete graph K5 (all nodes connected to all others)
-test "complete graph k5" {
+test "complete graph k5" (it : @test.Test) {
   let builder = DotBuilder::new()
   let nodes = ["a", "b", "c", "d", "e"]
   // Add all nodes
@@ -307,41 +178,23 @@ test "complete graph k5" {
     }
   }
   let dot = builder.to_dot()
-  // K5 should have 5 nodes and 20 edges (5 * 4)
-  // Verify a few edges exist
-  inspect(dot.contains("\"a\" -> \"b\" [label=\"0→1\"]"), content="false")
-  inspect(dot.contains("\"e\" -> \"d\" [label=\"4→3\"]"), content="false")
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }
 
 ///|
 /// Test 12: Unicode labels
-test "unicode in labels" {
+test "unicode in labels" (it : @test.Test) {
   let builder = DotBuilder::new()
-  builder.add_node(id="emoji", label="😀 🎉 ✨")
-  builder.add_node(id="chinese", label="中文测试")
-  builder.add_node(id="arabic", label="مرحبا")
-  builder.add_node(id="math", label="∑ ∫ ∂ √")
-  builder.add_edge(src="emoji", dst="chinese", label="→")
-  builder.add_edge(src="chinese", dst="arabic", label="→")
-  builder.add_edge(src="arabic", dst="math", label="→")
+  builder
+  ..add_node(id="emoji", label="😀 🎉 ✨")
+  ..add_node(id="chinese", label="中文测试")
+  ..add_node(id="arabic", label="مرحبا")
+  ..add_node(id="math", label="∑ ∫ ∂ √")
+  ..add_edge(src="emoji", dst="chinese", label="→")
+  ..add_edge(src="chinese", dst="arabic", label="→")
+  ..add_edge(src="arabic", dst="math", label="→")
   let dot = builder.to_dot()
-  inspect(
-    dot,
-    content=(
-      #|digraph Marshal {
-      #|  rankdir=LR;
-      #|  node [shape=box, style=rounded];
-      #|
-      #|  emoji [label="😀 🎉 ✨"];
-      #|  chinese [label="中文测试"];
-      #|  arabic [label="مرحبا"];
-      #|  math [label="∑ ∫ ∂ √"];
-      #|
-      #|  emoji -> chinese [label="→"];
-      #|  chinese -> arabic [label="→"];
-      #|  arabic -> math [label="→"];
-      #|}
-      #|
-    ),
-  )
+  it.write(dot)
+  it.snapshot(filename=it.name() + ".dot")
 }

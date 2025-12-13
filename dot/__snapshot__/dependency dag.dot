@@ -1,0 +1,16 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  frontend [label="Frontend App"];
+  api [label="API Server"];
+  auth [label="Auth Service"];
+  db [label="Database"];
+  cache [label="Cache"];
+
+  frontend -> api [label="HTTP"];
+  api -> auth [label="verify"];
+  api -> db [label="query"];
+  api -> cache [label="get/set"];
+  auth -> db [label="user lookup"];
+}

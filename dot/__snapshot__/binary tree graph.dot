@@ -1,0 +1,15 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  root [label="Root"];
+  left [label="Left Child"];
+  right [label="Right Child"];
+  ll [label="Left-Left"];
+  lr [label="Left-Right"];
+
+  root -> left [label="L"];
+  root -> right [label="R"];
+  left -> ll [label="L"];
+  left -> lr [label="R"];
+}

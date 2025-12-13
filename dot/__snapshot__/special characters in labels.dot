@@ -1,0 +1,11 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  n1 [label="Label with \"quotes\""];
+  n2 [label="Label with <brackets>"];
+  n3 [label="Label with \n newline"];
+
+  n1 -> n2 [label="edge → with → arrows"];
+  n2 -> n3 [label="label & symbols"];
+}

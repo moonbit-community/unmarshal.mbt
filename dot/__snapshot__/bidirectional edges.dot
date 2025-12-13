@@ -1,0 +1,12 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  client [label="Client"];
+  server [label="Server"];
+  database [label="Database"];
+
+  client -> server [label="HTTP", dir=both];
+  server -> database [label="query"];
+  server -> database [dir=both];
+}

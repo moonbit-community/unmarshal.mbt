@@ -1,0 +1,31 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  subgraph cluster_frontend {
+    label="Frontend Tier";
+    style=filled;
+    color=lightgrey;
+    web1;
+    web2;
+  }
+
+  subgraph cluster_backend {
+    label="Backend Tier";
+    style=filled;
+    color=lightgrey;
+    app1;
+    app2;
+  }
+
+  web1 [label="Web1"];
+  web2 [label="Web2"];
+  app1 [label="App1"];
+  app2 [label="App2"];
+  db [label="DB"];
+
+  web1 -> app1;
+  web2 -> app2;
+  app1 -> db;
+  app2 -> db;
+}

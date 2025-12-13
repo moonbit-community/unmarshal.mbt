@@ -1,0 +1,13 @@
+digraph Marshal {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  start [label="Start", shape=circle, color="green", style=filled];
+  process [label="Process", shape=box, color="lightblue", style=filled];
+  decision [label="Decision?", shape=diamond, color="yellow", style=filled];
+  end [label="End", shape=doublecircle, color="red", style=filled];
+
+  start -> process;
+  process -> decision;
+  decision -> end [label="yes"];
+}

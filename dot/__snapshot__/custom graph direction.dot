@@ -1,0 +1,11 @@
+digraph Vertical {
+  rankdir=TB;
+  node [shape=box, style=rounded];
+
+  top [label="Top"];
+  middle [label="Middle"];
+  bottom [label="Bottom"];
+
+  top -> middle [label="↓"];
+  middle -> bottom [label="↓"];
+}

@@ -7,11 +7,18 @@ package "bobzhang/unmarshal/dot"
 
 // Types and methods
 type DotBuilder
-pub fn DotBuilder::add_edge(Self, String, String, String) -> Unit
-pub fn DotBuilder::add_node(Self, String, String) -> Unit
+pub fn DotBuilder::add_bidirectional_edge(Self, node1~ : String, node2~ : String, label~ : String) -> Unit
+pub fn DotBuilder::add_edge(Self, src~ : String, dst~ : String, label~ : String) -> Unit
+pub fn DotBuilder::add_node(Self, id~ : String, label~ : String) -> Unit
+pub fn DotBuilder::add_styled_edge(Self, src~ : String, dst~ : String, label~ : String, style~ : String, color~ : String) -> Unit
+pub fn DotBuilder::add_styled_node(Self, id~ : String, label~ : String, shape~ : String, color~ : String) -> Unit
+pub fn DotBuilder::add_subgraph(Self, name~ : String, label~ : String, nodes~ : Array[String]) -> Unit
 pub fn DotBuilder::fresh_id(Self) -> String
 pub fn DotBuilder::new() -> Self
+pub fn DotBuilder::set_node_shape(Self, String) -> Unit
+pub fn DotBuilder::set_node_style(Self, String) -> Unit
 pub fn DotBuilder::to_dot(Self) -> String
+pub fn DotBuilder::with_config(graph_name~ : String, rankdir~ : String) -> Self
 
 // Type aliases
 

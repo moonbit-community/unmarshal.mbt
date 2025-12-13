@@ -29,8 +29,8 @@ pub fn DotBuilder::fresh_id(self : DotBuilder) -> String {
 /// Returns the node ID
 pub fn DotBuilder::add_node(
   self : DotBuilder,
-  id : String,
-  label : String,
+  id~ : String,
+  label~ : String,
 ) -> Unit {
   let escaped = escape_dot_label(label)
   self.nodes.push("  \{id} [label=\"\{escaped}\"];")
@@ -40,9 +40,9 @@ pub fn DotBuilder::add_node(
 /// Add an edge from src to dst with optional label
 pub fn DotBuilder::add_edge(
   self : DotBuilder,
-  src : String,
-  dst : String,
-  label : String,
+  src~ : String,
+  dst~ : String,
+  label~ : String,
 ) -> Unit {
   if label == "" {
     self.edges.push("  \{src} -> \{dst};")

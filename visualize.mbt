@@ -17,7 +17,7 @@ fn add_value_to_dot(builder : @dot.DotBuilder, value : MarshalValue) -> String {
   match value {
     MInt(n) => {
       let id = builder.fresh_id()
-      builder.add_node(id, "Int: \{n}")
+      builder.add_node(id~, label="Int: \{n}")
       id
     }
     MString(bytes) => {
@@ -34,46 +34,52 @@ fn add_value_to_dot(builder : @dot.DotBuilder, value : MarshalValue) -> String {
       } else {
         "String: \{s}"
       }
-      builder.add_node(id, label)
+      builder.add_node(id~, label~)
       id
     }
     MFloat(f) => {
       let id = builder.fresh_id()
-      builder.add_node(id, "Float: \{f}")
+      builder.add_node(id~, label="Float: \{f}")
       id
     }
     MDoubleArray(arr) => {
       let id = builder.fresh_id()
-      builder.add_node(id, "DoubleArray[\{arr.length()}]")
+      builder.add_node(id~, label="DoubleArray[\{arr.length()}]")
 
       // Add edges to first few elements (to avoid cluttering)
       let max_show = if arr.length() > 10 { 10 } else { arr.length() }
       for i = 0; i < max_show; i = i + 1 {
         let elem_id = builder.fresh_id()
-        builder.add_node(elem_id, "Float: \{arr[i]}")
-        builder.add_edge(id, elem_id, "[\{i}]")
+        builder.add_node(id=elem_id, label="Float: \{arr[i]}")
+        builder.add_edge(src=id, dst=elem_id, label="[\{i}]")
       }
       if arr.length() > max_show {
         let ellipsis_id = builder.fresh_id()
-        builder.add_node(ellipsis_id, "... \{arr.length() - max_show} more")
-        builder.add_edge(id, ellipsis_id, "")
+        builder.add_node(
+          id=ellipsis_id,
+          label="... \{arr.length() - max_show} more",
+        )
+        builder.add_edge(src=id, dst=ellipsis_id, label="")
       }
       id
     }
     MBlock(tag~, fields) => {
       let id = builder.fresh_id()
-      builder.add_node(id, "Block(tag=\{tag}, fields=\{fields.length()})")
+      builder.add_node(
+        id~,
+        label="Block(tag=\{tag}, fields=\{fields.length()})",
+      )
 
       // Add edges to all fields
       for i = 0; i < fields.length(); i = i + 1 {
         let field_id = add_value_to_dot(builder, fields[i])
-        builder.add_edge(id, field_id, "[\{i}]")
+        builder.add_edge(src=id, dst=field_id, label="[\{i}]")
       }
       id
     }
     MCustom(ident, data) => {
       let id = builder.fresh_id()
-      builder.add_node(id, "Custom: \{ident} (\{data.length()} bytes)")
+      builder.add_node(id~, label="Custom: \{ident} (\{data.length()} bytes)")
       id
     }
   }

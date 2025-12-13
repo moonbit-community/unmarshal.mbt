@@ -1,0 +1,16 @@
+flowchart LR
+%% graph: Marshal
+
+  start((Start))
+  process["Process"]
+  decision{Decision?}
+  end(((End)))
+
+  start --> process
+  process --> decision
+  decision -->|yes| end
+
+style start fill:green,stroke:#333,stroke-width:1px
+style process fill:lightblue,stroke:#333,stroke-width:1px
+style decision fill:yellow,stroke:#333,stroke-width:1px
+style end fill:red,stroke:#333,stroke-width:1px

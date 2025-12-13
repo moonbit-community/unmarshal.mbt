@@ -1,0 +1,10 @@
+flowchart LR
+%% graph: Marshal
+
+  client["Client"]
+  server["Server"]
+  database["Database"]
+
+  client <-->|HTTP| server
+  server -->|query| database
+  server <--> database

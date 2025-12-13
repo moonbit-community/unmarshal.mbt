@@ -18,6 +18,7 @@ pub fn DotBuilder::new() -> Self
 pub fn DotBuilder::set_node_shape(Self, String) -> Unit
 pub fn DotBuilder::set_node_style(Self, String) -> Unit
 pub fn DotBuilder::to_dot(Self) -> String
+pub fn DotBuilder::to_mermaid(Self) -> String
 pub fn DotBuilder::with_config(graph_name~ : String, rankdir~ : String) -> Self
 
 // Type aliases

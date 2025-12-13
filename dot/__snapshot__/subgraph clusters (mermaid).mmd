@@ -1,0 +1,23 @@
+flowchart LR
+%% graph: Marshal
+
+subgraph cluster_frontend["Frontend Tier"]
+  web1
+  web2
+end
+
+subgraph cluster_backend["Backend Tier"]
+  app1
+  app2
+end
+
+  web1["Web1"]
+  web2["Web2"]
+  app1["App1"]
+  app2["App2"]
+  db["DB"]
+
+  web1 --> app1
+  web2 --> app2
+  app1 --> db
+  app2 --> db

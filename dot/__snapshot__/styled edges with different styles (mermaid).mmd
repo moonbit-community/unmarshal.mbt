@@ -1,0 +1,14 @@
+flowchart LR
+%% graph: Marshal
+
+  a["Node A"]
+  b["Node B"]
+  c["Node C"]
+
+  a -->|solid| b
+  a -->|dashed| c
+  b -->|dotted| c
+
+linkStyle 0 stroke:black
+linkStyle 1 stroke-dasharray:5 5,stroke:blue
+linkStyle 2 stroke-dasharray:2 2,stroke:red

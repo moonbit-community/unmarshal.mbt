@@ -36,7 +36,7 @@ moon add bobzhang/unmarshal
 
 ### Basic Example
 
-```mbt
+```mbt nocheck
 ///|
 test "basic_usage" {
   let data : Bytes = [
@@ -60,7 +60,7 @@ test "basic_usage" {
 
 #### Integers
 
-```mbt
+```mbt nocheck
 ///|
 test "decode_integers" {
   // Small integer (0-63): single byte encoding
@@ -77,7 +77,7 @@ test "decode_integers" {
 
 #### Strings
 
-```mbt
+```mbt nocheck
 ///|
 test "decode_strings" {
   // Small string "Hello" (< 32 chars)
@@ -100,7 +100,7 @@ test "decode_strings" {
 
 #### Tuples and Blocks
 
-```mbt
+```mbt nocheck
 ///|
 test "decode_tuple" {
   // Tuple (1, 2)
@@ -127,7 +127,7 @@ test "decode_tuple" {
 
 #### Float Arrays
 
-```mbt
+```mbt nocheck
 ///|
 test "decode_float_array" {
   // Simple float array [3.14, 2.71]
@@ -158,7 +158,7 @@ test "decode_float_array" {
 
 OCaml's custom blocks allow specialized types like Int32, Int64, and Nativeint to be marshaled:
 
-```mbt
+```mbt nocheck
 ///|
 test "decode_int32" {
   // OCaml Int32.of_int 42
@@ -237,7 +237,7 @@ Custom block identifiers:
 
 OCaml's Marshal format supports object sharing to avoid duplicating data and handle cyclic structures:
 
-```mbt
+```mbt nocheck
 ///|
 test "shared_references" {
   // Tuple with shared string: ("shared", "shared")

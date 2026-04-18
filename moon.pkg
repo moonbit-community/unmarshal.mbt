@@ -1,5 +1,6 @@
 import {
   "bobzhang/unmarshal/dot",
+  "moonbitlang/core/debug",
 }
 
 options(

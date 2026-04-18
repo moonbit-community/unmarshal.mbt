@@ -1,6 +1,10 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "bobzhang/unmarshal"
 
+import {
+  "moonbitlang/core/debug",
+}
+
 // Values
 pub fn marshal_to_dot(MarshalValue) -> String
 
@@ -19,10 +23,8 @@ pub struct MarshalHeader {
   num_objects : Int
   size_32 : Int
   size_64 : Int
-}
-pub impl Eq for MarshalHeader
+} derive(Eq, ToJson, @debug.Debug)
 pub impl Show for MarshalHeader
-pub impl ToJson for MarshalHeader
 
 pub enum MarshalValue {
   MInt(Int)
@@ -31,11 +33,8 @@ pub enum MarshalValue {
   MDoubleArray(Array[Double])
   MBlock(tag~ : Int, Array[MarshalValue])
   MCustom(String, Bytes)
-}
-pub impl Eq for MarshalValue
-pub impl Hash for MarshalValue
+} derive(Eq, Hash, ToJson, @debug.Debug)
 pub impl Show for MarshalValue
-pub impl ToJson for MarshalValue
 
 // Type aliases
 

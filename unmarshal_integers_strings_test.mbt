@@ -74,13 +74,16 @@ test "decode_small_strings" {
   // Test strings that use PREFIX_SMALL_STRING encoding (< 32 chars)
   let decoder_empty = Decoder::new(string_empty_data)
   let (_, value_empty) = decoder_empty.decode()
-  inspect(value_empty, content="MString(b\"\")")
+  inspect(value_empty, content=(
+    #|MString(<Bytes: []>)
+  ))
   let decoder_a = Decoder::new(string_a_data)
   let (_, value_a) = decoder_a.decode()
   inspect(
     value_a,
     content=(
-      #|MString(b"a")
+      #|MString(<Bytes: [0x61]>)
+
     ),
   )
   let decoder_hello = Decoder::new(string_hello_data)
@@ -88,7 +91,8 @@ test "decode_small_strings" {
   inspect(
     value_hello,
     content=(
-      #|MString(b"Hello")
+      #|MString(<Bytes: [0x48, 0x65, 0x6c, 0x6c, 0x6f]>)
+
     ),
   )
   let decoder_31 = Decoder::new(string_31chars_data)
@@ -172,7 +176,25 @@ test "decode_special_strings" {
   inspect(
     value_special,
     content=(
-      #|MString(b"Hello\x0aWorld\x09!")
+      #|MString(
+      #|  <Bytes:
+      #|    [
+      #|      0x48,
+      #|      0x65,
+      #|      0x6c,
+      #|      0x6c,
+      #|      0x6f,
+      #|      0x0a,
+      #|      0x57,
+      #|      0x6f,
+      #|      0x72,
+      #|      0x6c,
+      #|      0x64,
+      #|      0x09,
+      #|      0x21,
+      #|    ]>,
+      #|)
+
     ),
   )
 
@@ -230,7 +252,11 @@ test "decode_tuple" {
   inspect(
     value_hello_42,
     content=(
-      #|MBlock(tag=0, [MString(b"Hello"), MInt(42)])
+      #|MBlock(
+      #|  tag=0,
+      #|  [MString(<Bytes: [0x48, 0x65, 0x6c, 0x6c, 0x6f]>), MInt(42)],
+      #|)
+
     ),
   )
 }

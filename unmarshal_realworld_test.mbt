@@ -25,7 +25,7 @@ test "decode real-world OCaml marshal data" {
       | [b'\x84', b'\x95', b'\xa6', b'\xbf', ..]) {
       break i
     }
-  } else {
+  } nobreak {
     fail("not found blob")
   }
   println("Found OCaml marshal magic at offset: \{marshal_offset}")
@@ -72,7 +72,7 @@ test "decode real-world OCaml marshal data from unmarshal.core" {
       | [b'\x84', b'\x95', b'\xa6', b'\xbf', ..]) {
       break i
     }
-  } else {
+  } nobreak {
     fail("not found core")
   }
   println("Found OCaml marshal magic at offset: \{marshal_offset}")

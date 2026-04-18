@@ -11,7 +11,7 @@ test {
   let state = @unmarshal.Decoder::new(data)
   let (a, b) = state.decode()
   //TODO:upstream Tuple2 impl ToJson
-  @json.inspect((a, b), content=[
+  json_inspect((a, b), content=[
     {
       "magic": 2224400062,
       "data_len": 1,

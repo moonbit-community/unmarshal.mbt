@@ -15,7 +15,7 @@ pub struct MarshalHeader {
   size_32 : Int
   /// Size of integers/pointers on 64-bit platforms
   size_64 : Int
-} derive(Show, Eq, ToJson)
+} derive(Debug, Eq, ToJson)
 
 ///|
 /// Represents all possible OCaml values that can be unmarshaled
@@ -46,4 +46,14 @@ pub enum MarshalValue {
   /// Objects are automatically registered in a shared object table during parsing
   /// to handle OCaml's object sharing and cyclic reference support.
   // MShared(Int) // Shared reference (currently resolved immediately during decoding)
-} derive(Show, Eq, ToJson, Hash)
+} derive(Debug, Eq, ToJson, Hash)
+
+///|
+pub impl Show for MarshalHeader with output(self, logger) {
+  logger.write_string(@debug.render(self.to_repr(), max_depth=2147483647))
+}
+
+///|
+pub impl Show for MarshalValue with output(self, logger) {
+  logger.write_string(@debug.render(self.to_repr(), max_depth=2147483647))
+}

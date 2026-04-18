@@ -16,7 +16,6 @@ test "decode_shared_string_tuple" {
       #|    MString(<Bytes: [0x73, 0x68, 0x61, 0x72, 0x65, 0x64]>),
       #|  ],
       #|)
-
     ),
   )
 }
@@ -59,7 +58,6 @@ test "decode_shared_nested_tuple" {
       #|    MString(<Bytes: [0x74, 0x65, 0x73, 0x74]>),
       #|  ],
       #|)
-
     ),
   )
 }
@@ -80,7 +78,6 @@ test "decode_triple_shared_middle" {
       #|    MString(<Bytes: [0x66, 0x69, 0x72, 0x73, 0x74]>),
       #|  ],
       #|)
-
     ),
   )
 }
@@ -181,7 +178,6 @@ test "verify_shared_indices" {
       #|    MString(<Bytes: [0x73, 0x68, 0x61, 0x72, 0x65, 0x64]>),
       #|  ],
       #|)
-
     ),
   )
   match value1 {

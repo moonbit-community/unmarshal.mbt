@@ -427,7 +427,7 @@ fn Decoder::decode_string_with_length(
   let string_bytes = view[:len]
   let remaining = view[len:]
   self.update_view(remaining)
-  let marshal_value = MString(string_bytes.to_bytes())
+  let marshal_value = MString(string_bytes.to_owned())
   self.add_shared_object(marshal_value)
   marshal_value
 }
@@ -551,7 +551,7 @@ fn Decoder::decode_custom_block_with_length(
   guard view.length() >= data_length else {
     fail("Insufficient data for custom block payload of length \{data_length}")
   }
-  let data_bytes = view[:data_length].to_bytes()
+  let data_bytes = view[:data_length].to_owned()
   self.update_view(view[data_length:])
   let marshal_value = MCustom(identifier, data_bytes)
   self.add_shared_object(marshal_value)
@@ -584,7 +584,7 @@ fn Decoder::decode_custom_block_fixed(self : Self) -> MarshalValue raise {
   guard view.length() >= data_length else {
     fail("Insufficient data for custom block '\{identifier}' payload")
   }
-  let data_bytes = view[:data_length].to_bytes()
+  let data_bytes = view[:data_length].to_owned()
   self.update_view(view[data_length:])
   let marshal_value = MCustom(identifier, data_bytes)
   self.add_shared_object(marshal_value)
@@ -605,7 +605,7 @@ fn Decoder::read_null_terminated_string(self : Self) -> Bytes raise {
   }
 
   // Extract the string bytes (without null terminator)
-  let str_bytes = view[:len].to_bytes()
+  let str_bytes = view[:len].to_owned()
 
   // Update position past the string and null terminator
   self.update_view(view[len + 1:])

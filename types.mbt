@@ -49,11 +49,11 @@ pub enum MarshalValue {
 } derive(Debug, Eq, ToJson, Hash)
 
 ///|
-pub impl Show for MarshalHeader with output(self, logger) {
+pub impl Show for MarshalHeader with fn output(self, logger) {
   logger.write_string(@debug.render(self.to_repr(), max_depth=2147483647))
 }
 
 ///|
-pub impl Show for MarshalValue with output(self, logger) {
+pub impl Show for MarshalValue with fn output(self, logger) {
   logger.write_string(@debug.render(self.to_repr(), max_depth=2147483647))
 }

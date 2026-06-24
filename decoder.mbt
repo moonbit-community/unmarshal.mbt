@@ -452,17 +452,22 @@ fn Decoder::decode_string_with_length(
 // }
 
 ///|
-fn Decoder::decode_double(
-  self : Self,
-  is_big_endian : Bool,
-) -> MarshalValue raise {
-  let value = if is_big_endian {
+/// Reads the 8 bytes of an IEEE-754 double from the view, honoring the
+/// stream's endianness, and returns the raw bits.
+///
+/// The two branches would read more neatly as a single or-pattern
+/// `(true, [u64be(v), .. rest]) | (false, [u64le(v), .. rest])`, but that
+/// currently crashes the compiler (moonbitlang/core#3699: an or-pattern that
+/// binds a `.. rest` tail across bits sub-patterns triggers an ICE in
+/// codegen). Keep the explicit `if` until that is fixed.
+fn Decoder::read_double_bits(self : Self, is_big_endian : Bool) -> UInt64 raise {
+  if is_big_endian {
     match self.view() {
       [u64be(v), .. rest] => {
         self.update_view(rest)
         v
       }
-      _ => fail("Failed to parse double (big-endian)")
+      _ => fail("Insufficient data for double")
     }
   } else {
     match self.view() {
@@ -470,10 +475,19 @@ fn Decoder::decode_double(
         self.update_view(rest)
         v
       }
-      _ => fail("Failed to parse double (little-endian)")
+      _ => fail("Insufficient data for double")
     }
   }
-  let marshal_value = MFloat(value.reinterpret_as_double())
+}
+
+///|
+fn Decoder::decode_double(
+  self : Self,
+  is_big_endian : Bool,
+) -> MarshalValue raise {
+  let marshal_value = MFloat(
+    self.read_double_bits(is_big_endian).reinterpret_as_double(),
+  )
   self.add_shared_object(marshal_value)
   marshal_value
 }
@@ -485,34 +499,8 @@ fn Decoder::decode_double_array(
   is_big_endian : Bool,
 ) -> MarshalValue raise {
   let doubles = []
-
-  // Read all doubles using pattern matching with u64be/u64le
-  for i in 0..<count {
-    let value = if is_big_endian {
-      match self.view() {
-        [u64be(v), .. rest] => {
-          self.update_view(rest)
-          v
-        }
-        _ =>
-          fail(
-            "Insufficient data for double at index \{i} in array (big-endian)",
-          )
-      }
-    } else {
-      match self.view() {
-        [u64le(v), .. rest] => {
-          self.update_view(rest)
-          v
-        }
-        _ =>
-          fail(
-            "Insufficient data for double at index \{i} in array (little-endian)",
-          )
-      }
-    }
-    let double_val = value.reinterpret_as_double()
-    doubles.push(double_val)
+  for _ in 0..<count {
+    doubles.push(self.read_double_bits(is_big_endian).reinterpret_as_double())
   }
   let marshal_value = MDoubleArray(doubles)
   self.add_shared_object(marshal_value)
@@ -525,15 +513,13 @@ fn Decoder::decode_block_with_tag_size(
   tag : Int,
   size : Int,
 ) -> MarshalValue raise {
-  // Create placeholder for recursive structures
+  // Create the block up front and register it before decoding fields so that
+  // recursive/cyclic shared references can point back to it.
   let fields = []
   let marshal_value = MBlock(tag~, fields)
   self.add_shared_object(marshal_value)
-
-  // Decode all fields
-  for i = 0; i < size; i = i + 1 {
-    let field_value = self.decode_value()
-    fields.push(field_value)
+  for _ in 0..<size {
+    fields.push(self.decode_value())
   }
   marshal_value
 }
@@ -637,19 +623,13 @@ fn Decoder::decode_custom_block_fixed(self : Self) -> MarshalValue raise {
 fn Decoder::read_null_terminated_string(self : Self) -> Bytes raise {
   let view = self.view()
   let mut len = 0
-
-  // Find null terminator
   while len < view.length() && view[len] != b'\x00' {
     len = len + 1
   }
   guard len < view.length() else {
     fail("No null terminator found in custom block identifier")
   }
-
-  // Extract the string bytes (without null terminator)
   let str_bytes = view[:len].to_owned()
-
-  // Update position past the string and null terminator
   self.update_view(view[len + 1:])
   str_bytes
 }

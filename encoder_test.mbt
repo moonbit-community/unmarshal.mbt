@@ -186,3 +186,70 @@ test "encode round-trips tuple with customs" {
     "8495a6be00000018000000040000000d0000000cb0195f690000000007226869195f6a00fffffffffffffffb",
   )
 }
+
+// --- Cycles, atoms, empty values, and integer boundaries (genuine OCaml) ---
+
+///|
+test "encode round-trips a cyclic list (self-reference)" {
+  // let rec cyc = 0 :: cyc  ->  cons cell whose tail is a shared ref to itself
+  assert_roundtrip("8495a6be00000004000000010000000300000003a0400401")
+}
+
+///|
+test "encode round-trips empty string" {
+  assert_roundtrip("8495a6be0000000100000001000000020000000220")
+}
+
+///|
+test "encode round-trips empty array (atom)" {
+  assert_roundtrip("8495a6be0000000100000000000000000000000080")
+}
+
+///|
+test "encode round-trips shared one-char string" {
+  // let s = "x" in (s, s)
+  assert_roundtrip("8495a6be00000005000000020000000500000005a021780401")
+}
+
+///|
+test "encode round-trips integer boundaries" {
+  // 63, 64, 127, 128, -128, -129, 32767, 32768
+  assert_roundtrip("8495a6be000000010000000000000000000000007f")
+  assert_roundtrip("8495a6be000000020000000000000000000000000040")
+  assert_roundtrip("8495a6be00000002000000000000000000000000007f")
+  assert_roundtrip("8495a6be00000003000000000000000000000000010080")
+  assert_roundtrip("8495a6be000000020000000000000000000000000080")
+  assert_roundtrip("8495a6be0000000300000000000000000000000001ff7f")
+  assert_roundtrip("8495a6be00000003000000000000000000000000017fff")
+  assert_roundtrip("8495a6be000000050000000000000000000000000200008000")
+}
+
+// --- Reverse direction: decode(encode(v)) == v for constructed acyclic
+// values (validates that the encoder emits decodable, structure-preserving
+// output independent of any fixture). ---
+
+///|
+test "decode(encode(v)) == v for constructed values" {
+  let cases : Array[MarshalValue] = [
+    MInt(0),
+    MInt(63),
+    MInt(64),
+    MInt(-1),
+    MInt(128),
+    MInt(-129),
+    MInt(32768),
+    MInt(100000),
+    MInt(-100000),
+    MString(b""),
+    MString(b"hello"),
+    MFloat(3.14),
+    MFloat(0.0),
+    MDoubleArray([1.0, 2.0, 3.0]),
+    MBlock(tag=0, [MInt(1), MString(b"a"), MFloat(2.5)]),
+    MBlock(tag=3, [MInt(7), MBlock(tag=0, [MInt(8), MInt(9)])]),
+  ]
+  for v in cases {
+    let (_, decoded) = Decoder::new(marshal(v)).decode()
+    assert_eq(decoded, v)
+  }
+}

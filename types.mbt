@@ -26,7 +26,7 @@ pub struct MarshalHeader {
 /// 
 /// ## Variants
 /// 
-pub enum MarshalValue {
+pub(all) enum MarshalValue {
   /// OCaml integers (31-bit on 32-bit, 63-bit on 64-bit platforms)  
   MInt(Int)
   /// OCaml strings with UTF-8 encoding

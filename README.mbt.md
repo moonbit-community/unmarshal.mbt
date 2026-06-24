@@ -1,10 +1,12 @@
-# OCaml Marshal Decoder for MoonBit
+# OCaml Marshal Codec for MoonBit
 
-A MoonBit implementation for decoding OCaml's Marshal binary format, enabling interoperability between OCaml and MoonBit programs.
+A MoonBit implementation for decoding **and encoding** OCaml's Marshal binary format, enabling interoperability between OCaml and MoonBit programs.
 
 ## Overview
 
-This library provides a decoder for OCaml's Marshal format, which is OCaml's native binary serialization format. It can decode most common OCaml data types including integers, strings, floats, arrays, tuples, records, and shared data references.
+This library provides a decoder and a faithful encoder for OCaml's Marshal format, OCaml's native binary serialization format. It can decode most common OCaml data types including integers, strings, floats, arrays, tuples, records, and shared data references, and re-encode them.
+
+The encoder (`marshal`) is **byte-identical** to OCaml 4.14.1 `Marshal.to_string v []` for the supported types: it reproduces OCaml's smallest-fit encodings, the shared-object table with backward-distance references (so DAGs and cycles round-trip), the heap-word size accounting, and the 20-byte header. Round-trip `marshal(decode(x)) == x` holds on genuine OCaml fixtures.
 
 ## Features
 
@@ -33,6 +35,36 @@ moon add bobzhang/unmarshal
 ```
 
 ## Usage
+
+### Encoding (Marshaling)
+
+`marshal(value)` serializes a `MarshalValue` back to OCaml Marshal bytes,
+byte-identical to OCaml's own output for the supported types:
+
+```mbt nocheck
+///|
+test "marshal_round_trip" {
+  // Build a value and serialize it (the bytes match `Marshal.to_string`).
+  let value = @unmarshal.MBlock(tag=0, [
+    @unmarshal.MInt(42),
+    @unmarshal.MString(b"hi"),
+  ])
+  let bytes = @unmarshal.marshal(value)
+
+  // Decoding the bytes gives the value back.
+  let (_, decoded) = @unmarshal.Decoder::new(bytes).decode()
+  inspect(
+    decoded,
+    content=(
+      #|MBlock(tag=0, [MInt(42), MString(<Bytes: [0x68, 0x69]>)])
+    ),
+  )
+}
+```
+
+Physically shared sub-values (and cycles) are encoded as backward
+references, exactly as OCaml does — share a `MarshalValue` between fields and
+the encoder emits a single copy plus shared references.
 
 ### Basic Example
 
@@ -301,6 +333,15 @@ Creates a new decoder from marshal data.
 
 #### `Decoder::decode(self : Decoder) -> (MarshalHeader, MarshalValue) raise`
 Decodes the marshal data, returning the header and value. Raises an error if the data is malformed.
+
+### Encoder Functions
+
+#### `marshal(value : MarshalValue) -> Bytes raise`
+Serializes a `MarshalValue` to OCaml Marshal wire format (small header),
+byte-identical to `Marshal.to_string value []` for the supported types.
+Physical sharing between sub-values is reproduced as backward references, so
+DAGs and cycles round-trip. Raises on an unsupported custom block identifier
+(only the `_i`/`_j`/`_n` scalars are supported).
 
 ## Implementation Details
 

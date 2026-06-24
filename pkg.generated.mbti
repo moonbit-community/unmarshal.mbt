@@ -6,6 +6,8 @@ import {
 }
 
 // Values
+pub fn marshal(MarshalValue) -> Bytes raise
+
 pub fn marshal_to_dot(MarshalValue) -> String
 
 // Errors
@@ -26,7 +28,7 @@ pub struct MarshalHeader {
 } derive(Eq, ToJson, @debug.Debug)
 pub impl Show for MarshalHeader
 
-pub enum MarshalValue {
+pub(all) enum MarshalValue {
   MInt(Int)
   MString(Bytes)
   MFloat(Double)

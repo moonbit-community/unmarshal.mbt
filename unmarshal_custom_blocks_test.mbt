@@ -187,26 +187,56 @@ test "unmarshal tuple with custom blocks" {
 }
 
 ///|
-test "unmarshal nativeint custom block" {
-  // Nativeint value 42 (on 64-bit platform)
+test "unmarshal nativeint custom block (small value)" {
+  // Real `Marshal.to_string (Nativeint.of_int 42)` from OCaml 4.14.1.
+  // The nativeint payload is a 1-byte width tag (1 => 4-byte int32) followed
+  // by the value -- it is NOT a bare 8-byte integer (see runtime/ints.c).
   let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
-     0x00, 0x00, 0x00, 0x0c, // Data length: 12 bytes
+     0x00, 0x00, 0x00, 0x09, // Data length: 9 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
      0x00, 0x00, 0x00, 0x03, // Size on 32-bit: 3
-     0x00, 0x00, 0x00, 0x02, // Size on 64-bit: 2
+     0x00, 0x00, 0x00, 0x03, // Size on 64-bit: 3
      0x19, // CODE_CUSTOM_FIXED
      0x5f, 0x6e, 0x00, // "_n" (null-terminated)
-     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2a, // Nativeint value: 42
+     0x01, // width tag: 1 => 4-byte int32
+     0x00, 0x00, 0x00, 0x2a, // value 42
   ])
   let decoder = Decoder::new(data)
   let (_header, value) = decoder.decode()
   match value {
     MCustom(id, data) => {
       assert_eq(id, "_n")
-      assert_eq(data.length(), 8)
-      // Verify the value is 42 (last byte)
-      assert_eq(data[7], b'\x2a')
+      assert_eq(data, Bytes::from_array([0x01, 0x00, 0x00, 0x00, 0x2a]))
+    }
+    _ => fail("Expected MCustom for Nativeint")
+  }
+}
+
+///|
+test "unmarshal nativeint custom block (large value)" {
+  // Real `Marshal.to_string (Nativeint.of_int (1 lsl 40))` from OCaml 4.14.1.
+  // Values outside the int32 range use width tag 2 => 8-byte int64.
+  let data = Bytes::from_array([
+    0x84, 0x95, 0xa6, 0xbe, // Magic number
+     0x00, 0x00, 0x00, 0x0d, // Data length: 13 bytes
+     0x00, 0x00, 0x00, 0x01, // Number of objects: 1
+     0x00, 0x00, 0x00, 0x03, // Size on 32-bit: 3
+     0x00, 0x00, 0x00, 0x03, // Size on 64-bit: 3
+     0x19, // CODE_CUSTOM_FIXED
+     0x5f, 0x6e, 0x00, // "_n" (null-terminated)
+     0x02, // width tag: 2 => 8-byte int64
+     0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, // value 2^40
+  ])
+  let decoder = Decoder::new(data)
+  let (_header, value) = decoder.decode()
+  match value {
+    MCustom(id, data) => {
+      assert_eq(id, "_n")
+      assert_eq(
+        data,
+        Bytes::from_array([0x02, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00]),
+      )
     }
     _ => fail("Expected MCustom for Nativeint")
   }

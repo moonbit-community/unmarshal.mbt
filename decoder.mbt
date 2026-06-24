@@ -542,20 +542,36 @@ fn Decoder::decode_block_with_tag_size(
 /// Serialized payload length, in bytes, for the custom block types we support.
 ///
 /// OCaml's marshal format does not carry the serialized length of a custom
-/// block in a generically usable way: for `CODE_CUSTOM_LEN` the two size
-/// fields are the *in-memory* heap sizes (`wsize_32`/`wsize_64` from the
-/// type's `serialize` function), which equal the serialized length only for
-/// flat scalar customs — for e.g. a bigarray they stay constant while the
-/// payload grows. A reader therefore needs per-type knowledge to find the
-/// payload boundary, exactly as OCaml's runtime does via registered custom
-/// operations. We support the standard fixed-size scalars and fail clearly on
-/// anything else.
-fn custom_payload_length(identifier : String) -> Int raise {
+/// block in a generically usable way: the per-type sizes it does store (the
+/// `CODE_CUSTOM_LEN` length header, and `custom_fixed_length`) are the
+/// *in-memory* heap sizes from the type's `serialize`/`deserialize`, which can
+/// differ from the serialized byte count — for e.g. a bigarray they stay
+/// constant while the payload grows, and a nativeint serializes 5 or 9 bytes
+/// while its fixed length reports 8. A reader therefore needs per-type
+/// knowledge to find the payload boundary, exactly as OCaml's runtime does via
+/// registered custom operations. We support the standard scalars and fail
+/// clearly on anything else.
+///
+/// The view must be positioned at the start of the payload (some types, like
+/// nativeint, need to peek the leading tag byte to determine the length).
+fn Decoder::custom_payload_length(
+  self : Self,
+  identifier : String,
+) -> Int raise {
   match identifier {
-    "_i" => 4 // Int32
-    "_j" => 8 // Int64
-    "_n" => 8 // Nativeint (assume a 64-bit platform)
-    "_m" => 8 // Custom int (often int64)
+    "_i" => 4 // Int32: 4-byte big-endian value
+    "_j" => 8 // Int64: 8-byte big-endian value
+    // Nativeint (OCaml runtime/ints.c nativeint_serialize): a 1-byte tag
+    // selects the width — 1 => a 4-byte int32, 2 => an 8-byte int64 —
+    // followed by that value, so the payload is 5 or 9 bytes including the
+    // tag, not the fixed in-memory size (8).
+    "_n" =>
+      match self.view() {
+        [1, ..] => 5
+        [2, ..] => 9
+        [tag, ..] => fail("Invalid nativeint tag byte: \{tag}")
+        [] => fail("Insufficient data for nativeint custom block")
+      }
     _ => fail("Unsupported custom block identifier: \{identifier}")
   }
 }
@@ -568,14 +584,15 @@ fn Decoder::read_custom_identifier(self : Self) -> String raise {
 }
 
 ///|
-/// Reads `custom_payload_length(identifier)` payload bytes, builds the
-/// `MCustom` value and registers it for sharing. Assumes the view is
-/// positioned at the start of the serialized payload.
+/// Reads the payload of a supported custom block, builds the `MCustom` value
+/// and registers it for sharing. Assumes the view is positioned at the start
+/// of the serialized payload. The stored bytes are the raw serialized payload
+/// (e.g. for nativeint this includes the leading width tag).
 fn Decoder::read_custom_payload(
   self : Self,
   identifier : String,
 ) -> MarshalValue raise {
-  let data_length = custom_payload_length(identifier)
+  let data_length = self.custom_payload_length(identifier)
   let view = self.view()
   guard view.length() >= data_length else {
     fail("Insufficient data for custom block '\{identifier}' payload")

@@ -153,6 +153,26 @@ fn MarshalEncoder::emit_custom(
   payload : Bytes,
 ) -> Unit raise {
   let (sz_32, sz_64) = custom_inmem_size(identifier)
+  // Validate the payload: `MarshalValue` is publicly constructible, so a
+  // malformed MCustom must raise rather than emit a stream neither this
+  // decoder nor OCaml can read. Expected serialized payloads:
+  //   _i: 4 bytes; _j: 8 bytes; _n: width tag 1 + 4 bytes, or tag 2 + 8 bytes.
+  let payload_ok = match identifier {
+    "_n" =>
+      match payload {
+        [1, ..] => payload.length() == 5
+        [2, ..] => payload.length() == 9
+        _ => false
+      }
+    "_i" => payload.length() == 4
+    "_j" => payload.length() == 8
+    _ => false
+  }
+  guard payload_ok else {
+    fail(
+      "marshal: invalid payload for custom block '\{identifier}' (\{payload.length()} bytes)",
+    )
+  }
   self.w8(0x19) // CODE_CUSTOM_FIXED
   for c in identifier {
     self.w8(c.to_int())

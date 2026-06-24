@@ -264,3 +264,25 @@ test "marshal empty MDoubleArray as the tag-0 atom" {
   let (_, v) = Decoder::new(bytes).decode()
   assert_eq(v, MBlock(tag=0, []))
 }
+
+///|
+test "marshal validates custom block payloads" {
+  fn fails(v : MarshalValue) -> Bool {
+    let _ = marshal(v) catch { _ => return true }
+    false
+  }
+
+  // Malformed payloads must raise, not emit an unreadable stream.
+  assert_true(fails(MCustom("_i", b""))) // _i needs 4 bytes
+  assert_true(fails(MCustom("_i", b"\x00\x00\x00\x00\x00"))) // too long
+  assert_true(fails(MCustom("_j", b"\x00"))) // _j needs 8 bytes
+  assert_true(fails(MCustom("_n", b"\x01\x00\x00"))) // tag 1 needs 4 value bytes
+  assert_true(fails(MCustom("_n", b"\x02\x00"))) // tag 2 needs 8 value bytes
+  assert_true(fails(MCustom("_n", b"\x03\x00\x00\x00\x00"))) // invalid width tag
+  assert_true(fails(MCustom("_z", b"\x00"))) // unsupported identifier
+  // Well-formed payloads still succeed.
+  assert_false(fails(MCustom("_i", b"\x00\x00\x00\x2a")))
+  assert_false(fails(MCustom("_j", b"\x00\x00\x00\x00\x00\x00\x00\x2a")))
+  assert_false(fails(MCustom("_n", b"\x01\x00\x00\x00\x2a")))
+  assert_false(fails(MCustom("_n", b"\x02\x00\x00\x01\x00\x00\x00\x00\x00")))
+}

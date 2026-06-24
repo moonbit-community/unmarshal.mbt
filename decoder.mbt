@@ -498,10 +498,13 @@ fn Decoder::decode_double_array(
   count : Int,
   is_big_endian : Bool,
 ) -> MarshalValue raise {
-  let doubles = []
-  for _ in 0..<count {
-    doubles.push(self.read_double_bits(is_big_endian).reinterpret_as_double())
-  }
+  // The comprehension evaluates left to right, which matters because
+  // `read_double_bits` advances the view as it reads each element.
+  let doubles = [
+    for _ in 0..<count => {
+      self.read_double_bits(is_big_endian).reinterpret_as_double()
+    }
+  ]
   let marshal_value = MDoubleArray(doubles)
   self.add_shared_object(marshal_value)
   marshal_value
@@ -566,7 +569,7 @@ fn Decoder::custom_payload_length(
 /// Reads a null-terminated custom block identifier as a String.
 fn Decoder::read_custom_identifier(self : Self) -> String raise {
   let identifier_bytes = self.read_null_terminated_string()
-  String::from_array(identifier_bytes.to_array().map(fn(b) { b.to_char() }))
+  String::from_array([ for b in identifier_bytes => b.to_char() ])
 }
 
 ///|

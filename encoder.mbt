@@ -130,6 +130,42 @@ fn MarshalEncoder::emit_double_array(self : Self, a : Array[Double]) -> Unit {
 }
 
 ///|
+/// In-memory heap size (`bytes_32`, `bytes_64`) of a supported custom block,
+/// used for the size accounting (NOT the serialized payload length). Matches
+/// the `custom_fixed_length` values in OCaml runtime/ints.c.
+fn custom_inmem_size(identifier : String) -> (Int, Int) raise {
+  match identifier {
+    "_i" => (4, 4) // Int32
+    "_j" => (8, 8) // Int64
+    "_n" => (4, 8) // Nativeint
+    _ => fail("marshal: unsupported custom block identifier: \{identifier}")
+  }
+}
+
+///|
+/// Emits a custom block as `CODE_CUSTOM_FIXED`, the form OCaml uses for the
+/// fixed-size scalars int32/int64/nativeint: code, null-terminated identifier,
+/// then the raw serialized payload (for nativeint this already includes the
+/// leading width tag, as stored by the decoder).
+fn MarshalEncoder::emit_custom(
+  self : Self,
+  identifier : String,
+  payload : Bytes,
+) -> Unit raise {
+  let (sz_32, sz_64) = custom_inmem_size(identifier)
+  self.w8(0x19) // CODE_CUSTOM_FIXED
+  for c in identifier {
+    self.w8(c.to_int())
+  }
+  self.w8(0x00) // null terminator
+  for byte in payload {
+    self.body.push(byte)
+  }
+  self.size_32 += 2 + ((sz_32 + 3) >> 2) // header + ops + data words
+  self.size_64 += 2 + ((sz_64 + 7) >> 3)
+}
+
+///|
 /// Emits a block header (PREFIX_SMALL_BLOCK or CODE_BLOCK32/64). The OCaml
 /// header word is `(size << 10) | tag` (GC color 0).
 fn MarshalEncoder::emit_block_header(
@@ -233,8 +269,10 @@ fn MarshalEncoder::encode(self : Self, v : MarshalValue) -> Unit raise {
                   self.encode(field)
                 }
               }
-              MCustom(_, _) =>
-                fail("marshal: custom blocks are not yet supported")
+              MCustom(identifier, payload) => {
+                self.emit_custom(identifier, payload)
+                self.record(v)
+              }
               MInt(_) => abort("unreachable: MInt handled above")
             }
         }

@@ -112,16 +112,19 @@ test "unmarshal custom block Int64" {
 
 ///|
 test "unmarshal custom block with length prefix" {
-  // Using CODE_CUSTOM_LEN instead of CODE_CUSTOM_FIXED
+  // CODE_CUSTOM_LEN layout (OCaml runtime/extern.c extern_custom):
+  //   code, identifier (null-terminated), then a 12-byte length header
+  //   (sz_32 as 4 bytes BE, sz_64 as 8 bytes BE), then the payload.
   let data = Bytes::from_array([
     0x84, 0x95, 0xa6, 0xbe, // Magic number
-     0x00, 0x00, 0x00, 0x0c, // Data length: 12 bytes
+     0x00, 0x00, 0x00, 0x14, // Data length: 20 bytes
      0x00, 0x00, 0x00, 0x01, // Number of objects: 1
      0x00, 0x00, 0x00, 0x03, // Size on 32-bit: 3
      0x00, 0x00, 0x00, 0x03, // Size on 64-bit: 3
      0x18, // CODE_CUSTOM_LEN
-     0x00, 0x00, 0x00, 0x07, // Length: 7 bytes (identifier + null + data)
-     0x5f, 0x69, 0x00, // "_i" (null-terminated)
+     0x5f, 0x69, 0x00, // "_i" (null-terminated identifier)
+     0x00, 0x00, 0x00, 0x04, // sz_32: in-memory size on 32-bit = 4
+     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, // sz_64: in-memory size on 64-bit = 4
      0x12, 0x34, 0x56, 0x78, // Int32 value: 0x12345678
   ])
   let decoder = Decoder::new(data)
@@ -254,5 +257,30 @@ test "unmarshal custom block Int32 min value" {
       assert_eq(data, Bytes::from_array([0x80, 0x00, 0x00, 0x00]))
     }
     _ => fail("Expected MCustom for Int32")
+  }
+}
+
+///|
+test "real bigarray CODE_CUSTOM_LEN is rejected cleanly" {
+  // Genuine `Marshal.to_string` output from OCaml 4.14.1 for a
+  // `Bigarray.Array1` (int8, 4 elements). It uses CODE_CUSTOM_LEN with the
+  // identifier "_bigarr02". The decoder correctly parses the identifier and
+  // the 12-byte length header, but the bigarray payload length is not
+  // derivable from that header (the sizes are in-memory, not serialized), so
+  // this unsupported type must fail cleanly rather than silently misparse.
+  let data = Bytes::from_array([
+    0x84, 0x95, 0xa6, 0xbe, 0x00, 0x00, 0x00, 0x25, 0x00, 0x00, 0x00, 0x01, 0x00,
+    0x00, 0x00, 0x07, 0x00, 0x00, 0x00, 0x07, 0x18, 0x5f, 0x62, 0x69, 0x67, 0x61,
+    0x72, 0x72, 0x30, 0x32, 0x00, 0x00, 0x00, 0x00, 0x14, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x00,
+    0x04, 0x00, 0x01, 0x02, 0x03,
+  ])
+  let result : MarshalValue? = Some(Decoder::new(data).decode().1) catch {
+    _ => None
+  }
+  match result {
+    None => () // expected: "_bigarr02" is unsupported, decoding fails cleanly
+    Some(_) =>
+      fail("expected bigarray CODE_CUSTOM_LEN to be rejected, not parsed")
   }
 }

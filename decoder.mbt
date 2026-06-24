@@ -402,18 +402,15 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
       get_shared_object(self, index.reinterpret_as_int64().to_int())
     }
 
-    // Custom blocks with length prefix
-    [CODE_CUSTOM_LEN, u32be(length), .. rest] => {
+    // Custom blocks with length-prefixed header
+    [CODE_CUSTOM_LEN, .. rest] => {
       self.update_view(rest)
-      let len = length.reinterpret_as_int()
-      self.decode_custom_block_with_length(len)
+      self.decode_custom_block_len()
     }
 
-    // Custom blocks with fixed size (not commonly used, but we support it)
+    // Custom blocks with fixed size
     [CODE_CUSTOM_FIXED, .. rest] => {
       self.update_view(rest)
-      // Fixed custom blocks don't have a length prefix - the deserializer knows the size
-      // We'll treat this similar to CODE_CUSTOM_LEN but without reading a length
       self.decode_custom_block_fixed()
     }
     [tag, ..] =>
@@ -542,53 +539,43 @@ fn Decoder::decode_block_with_tag_size(
 }
 
 ///|
-fn Decoder::decode_custom_block_with_length(
-  self : Self,
-  total_length : Int,
-) -> MarshalValue raise {
-  // Read the identifier string (null-terminated)
-  let identifier_bytes = self.read_null_terminated_string()
-  let identifier = String::from_array(
-    identifier_bytes.to_array().map(fn(b) { b.to_char() }),
-  )
-
-  // Calculate remaining data length after identifier
-  let data_length = total_length - identifier_bytes.length() - 1 // -1 for null terminator
-
-  // Read the custom data
-  let view = self.view()
-  guard view.length() >= data_length else {
-    fail("Insufficient data for custom block payload of length \{data_length}")
+/// Serialized payload length, in bytes, for the custom block types we support.
+///
+/// OCaml's marshal format does not carry the serialized length of a custom
+/// block in a generically usable way: for `CODE_CUSTOM_LEN` the two size
+/// fields are the *in-memory* heap sizes (`wsize_32`/`wsize_64` from the
+/// type's `serialize` function), which equal the serialized length only for
+/// flat scalar customs — for e.g. a bigarray they stay constant while the
+/// payload grows. A reader therefore needs per-type knowledge to find the
+/// payload boundary, exactly as OCaml's runtime does via registered custom
+/// operations. We support the standard fixed-size scalars and fail clearly on
+/// anything else.
+fn custom_payload_length(identifier : String) -> Int raise {
+  match identifier {
+    "_i" => 4 // Int32
+    "_j" => 8 // Int64
+    "_n" => 8 // Nativeint (assume a 64-bit platform)
+    "_m" => 8 // Custom int (often int64)
+    _ => fail("Unsupported custom block identifier: \{identifier}")
   }
-  let data_bytes = view[:data_length].to_owned()
-  self.update_view(view[data_length:])
-  let marshal_value = MCustom(identifier, data_bytes)
-  self.add_shared_object(marshal_value)
-  marshal_value
 }
 
 ///|
-fn Decoder::decode_custom_block_fixed(self : Self) -> MarshalValue raise {
-  // For fixed custom blocks, we don't have a length prefix
-  // Read the identifier string first
+/// Reads a null-terminated custom block identifier as a String.
+fn Decoder::read_custom_identifier(self : Self) -> String raise {
   let identifier_bytes = self.read_null_terminated_string()
-  let identifier = String::from_array(
-    identifier_bytes.to_array().map(fn(b) { b.to_char() }),
-  )
+  String::from_array(identifier_bytes.to_array().map(fn(b) { b.to_char() }))
+}
 
-  // The size depends on the identifier - common cases:
-  // "_i" -> Int32 -> 4 bytes
-  // "_j" -> Int64 -> 8 bytes
-  // "_n" -> Nativeint -> 4 or 8 bytes depending on platform
-  let data_length = match identifier {
-    "_i" => 4 // Int32
-    "_j" => 8 // Int64
-    "_n" => 8 // Assume 64-bit platform for nativeint
-    "_m" => 8 // Custom int (often int64)
-    _ => fail("Unknown custom block identifier: \{identifier}")
-  }
-
-  // Read the custom data
+///|
+/// Reads `custom_payload_length(identifier)` payload bytes, builds the
+/// `MCustom` value and registers it for sharing. Assumes the view is
+/// positioned at the start of the serialized payload.
+fn Decoder::read_custom_payload(
+  self : Self,
+  identifier : String,
+) -> MarshalValue raise {
+  let data_length = custom_payload_length(identifier)
   let view = self.view()
   guard view.length() >= data_length else {
     fail("Insufficient data for custom block '\{identifier}' payload")
@@ -598,6 +585,35 @@ fn Decoder::decode_custom_block_fixed(self : Self) -> MarshalValue raise {
   let marshal_value = MCustom(identifier, data_bytes)
   self.add_shared_object(marshal_value)
   marshal_value
+}
+
+///|
+/// Decodes a `CODE_CUSTOM_LEN` block.
+///
+/// Wire layout (after the 0x18 code byte), per OCaml `runtime/extern.c`
+/// `extern_custom`: the null-terminated identifier, then a 12-byte length
+/// header (`sz_32` as 4 bytes big-endian followed by `sz_64` as 8 bytes
+/// big-endian), then the serialized payload. Those sizes are in-memory heap
+/// sizes used for the header's size accounting, not the serialized length, so
+/// the payload boundary is derived from the identifier — see
+/// `custom_payload_length`.
+fn Decoder::decode_custom_block_len(self : Self) -> MarshalValue raise {
+  let identifier = self.read_custom_identifier()
+  // Consume the 12-byte length header (sz_32: 4 bytes, sz_64: 8 bytes).
+  match self.view() {
+    [u32be(_sz_32), u64be(_sz_64), .. rest] => self.update_view(rest)
+    _ =>
+      fail("Insufficient data for custom block '\{identifier}' length header")
+  }
+  self.read_custom_payload(identifier)
+}
+
+///|
+/// Decodes a `CODE_CUSTOM_FIXED` block: identifier then payload, with no
+/// length header (the payload size is implied by the type).
+fn Decoder::decode_custom_block_fixed(self : Self) -> MarshalValue raise {
+  let identifier = self.read_custom_identifier()
+  self.read_custom_payload(identifier)
 }
 
 ///|

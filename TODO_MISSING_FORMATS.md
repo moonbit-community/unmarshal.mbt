@@ -49,16 +49,24 @@ This document lists the OCaml marshal formats that are not yet supported in our 
 - ✅ Empty float arrays are encoded as empty blocks with tag 0
 - ✅ Comprehensive tests added and passing
 
-### 2. Custom Blocks ✅
-- [x] `CODE_CUSTOM_LEN` (0x18) - Custom block with length prefix
-- [x] `CODE_CUSTOM_FIXED` (0x19) - Custom block with fixed size
+### 2. Custom Blocks (scalars ✅, variable-length ❌)
+- [x] `CODE_CUSTOM_LEN` (0x18) - header parsed: identifier, then 12-byte
+      length header (`sz_32` 4 bytes BE + `sz_64` 8 bytes BE), then payload
+- [x] `CODE_CUSTOM_FIXED` (0x19) - identifier then payload, no length header
 
 **Implementation Notes**:
-- ✅ `MCustom(String, Bytes)` variant fully implemented
+- ✅ `MCustom(String, Bytes)` variant implemented
 - ✅ Parses identifier string (null-terminated)
-- ✅ Supports common custom types: Int32 ("_i"), Int64 ("_j"), Nativeint ("_n")
-- ✅ Custom data stored as raw bytes for application-specific interpretation
-- ✅ Comprehensive tests added and passing
+- ✅ Supports the fixed-size scalars: Int32 ("_i"), Int64 ("_j"),
+  Nativeint ("_n"), and "_m"; custom data stored as raw bytes
+- ⚠️ `sz_32`/`sz_64` in the `CODE_CUSTOM_LEN` header are *in-memory* heap
+  sizes, NOT the serialized payload length (verified against real OCaml
+  output: a bigarray's sz fields stay constant as its data grows). The
+  payload boundary of a variable-length custom (e.g. Bigarray `_bigarr02`,
+  Zarith `_z`) cannot be found generically — OCaml uses per-type registered
+  operations. We derive the payload length from the identifier for the
+  supported scalars and **fail cleanly on unsupported identifiers**.
+- [ ] Variable-length custom blocks (would need per-type deserializers)
 
 ### 3. Code Pointers (Functions/Closures)
 - [ ] `CODE_CODEPOINTER` (0x10) - Code pointer representation

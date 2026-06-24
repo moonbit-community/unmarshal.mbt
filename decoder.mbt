@@ -516,11 +516,17 @@ fn Decoder::decode_block_with_tag_size(
   tag : Int,
   size : Int,
 ) -> MarshalValue raise {
-  // Create the block up front and register it before decoding fields so that
-  // recursive/cyclic shared references can point back to it.
+  // Register the block (before decoding fields, so recursive/cyclic shared
+  // references can point back to it) — but only if it is non-empty. OCaml does
+  // not register size-0 blocks (atoms) in the object table: see
+  // runtime/intern.c `read_block` (`if (size == 0) v = Atom(tag)` skips the
+  // `obj_counter++`), mirrored by `extern.c` (atoms are not recorded). Counting
+  // an atom here would shift every later shared reference by one.
   let fields = []
   let marshal_value = MBlock(tag~, fields)
-  self.add_shared_object(marshal_value)
+  if size > 0 {
+    self.add_shared_object(marshal_value)
+  }
   for _ in 0..<size {
     fields.push(self.decode_value())
   }

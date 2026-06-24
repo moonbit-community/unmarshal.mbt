@@ -99,3 +99,34 @@ test "rw shared list at backward distance 5" {
     ),
   )
 }
+
+///|
+// ("abc", [||], "abc") with `let s = "abc" in (s, [||], s)`.
+// The empty array is an OCaml atom (byte 0x80): it is NOT registered in the
+// object table (header num_objects = 2, not 3), so the 3rd field's shared
+// reference (ofs=1) must resolve to "abc", not to the atom.
+let rw_atom_between_shared_data : Bytes = [
+  b'\x84', b'\x95', b'\xa6', b'\xbe', b'\x00', b'\x00', b'\x00', b'\x08', b'\x00',
+  b'\x00', b'\x00', b'\x02', b'\x00', b'\x00', b'\x00', b'\x06', b'\x00', b'\x00',
+  b'\x00', b'\x06', b'\xb0', b'\x23', b'\x61', b'\x62', b'\x63', b'\x80', b'\x04',
+  b'\x01',
+]
+
+///|
+test "rw atom is not registered for sharing" {
+  let (_, value) = Decoder::new(rw_atom_between_shared_data).decode()
+  // ("abc", [||], "abc") -- the 3rd field resolves past the atom to "abc"
+  inspect(
+    value,
+    content=(
+      #|MBlock(
+      #|  tag=0,
+      #|  [
+      #|    MString(<Bytes: [0x61, 0x62, 0x63]>),
+      #|    MBlock(tag=0, []),
+      #|    MString(<Bytes: [0x61, 0x62, 0x63]>),
+      #|  ],
+      #|)
+    ),
+  )
+}

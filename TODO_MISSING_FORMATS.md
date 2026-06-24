@@ -58,7 +58,7 @@ This document lists the OCaml marshal formats that are not yet supported in our 
 - ✅ `MCustom(String, Bytes)` variant implemented
 - ✅ Parses identifier string (null-terminated)
 - ✅ Supports the fixed-size scalars: Int32 ("_i"), Int64 ("_j"),
-  Nativeint ("_n"), and "_m"; custom data stored as raw bytes
+  Nativeint ("_n"); custom data stored as raw bytes
 - ⚠️ `sz_32`/`sz_64` in the `CODE_CUSTOM_LEN` header are *in-memory* heap
   sizes, NOT the serialized payload length (verified against real OCaml
   output: a bigarray's sz fields stay constant as its data grows). The

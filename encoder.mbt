@@ -176,9 +176,17 @@ fn MarshalEncoder::emit_block_header(
   if tag < 16 && size < 8 {
     self.w8(0x80 + tag + (size << 4)) // PREFIX_SMALL_BLOCK
   } else {
-    let hd = (size << 10) | tag
-    self.w8(0x08) // CODE_BLOCK32
-    self.w32(hd)
+    // Compute the header word in 64 bits: `size << 10` overflows a 32-bit Int
+    // once `size >= 2^21`. OCaml uses CODE_BLOCK64 when the header exceeds 32
+    // bits (a block with >= ~4M fields), CODE_BLOCK32 otherwise.
+    let hd = (size.to_int64() << 10) | tag.to_int64()
+    if hd < 0x1_0000_0000 {
+      self.w8(0x08) // CODE_BLOCK32
+      self.w32(hd.to_int())
+    } else {
+      self.w8(0x13) // CODE_BLOCK64
+      self.w64(hd)
+    }
   }
 }
 
@@ -234,9 +242,11 @@ fn MarshalEncoder::encode(self : Self, v : MarshalValue) -> Unit raise {
     MInt(n) => self.emit_int(n)
     _ =>
       if is_atom(v) {
-        // Atom (empty block / empty float array): inline 0-size header only.
+        // Atom (empty block / empty array): inline 0-size header only, never
+        // recorded. OCaml represents every empty array — including a
+        // `float array` — as the tag-0 atom `Atom(0)` (0x80), so an empty
+        // MDoubleArray encodes with tag 0, not Double_array_tag.
         let tag = match v {
-          MDoubleArray(_) => 254 // Double_array_tag
           MBlock(tag~, _) => tag
           _ => 0
         }
@@ -303,4 +313,22 @@ pub fn marshal(value : MarshalValue) -> Bytes raise {
     out.push(byte)
   }
   Bytes::from_array(out)
+}
+
+///|
+test "emit_block_header selects BLOCK32 below 2^32, BLOCK64 at/above" {
+  // size = 2^22 - 1: hd = 0xFFFFFC00 < 2^32 -> CODE_BLOCK32 (0x08) + 4 bytes
+  let b32 = MarshalEncoder::new()
+  b32.emit_block_header(0, (1 << 22) - 1)
+  assert_eq(b32.body.length(), 5)
+  assert_eq(b32.body[0], b'\x08')
+  assert_eq(b32.body[1], b'\xff')
+  assert_eq(b32.body[4], b'\x00')
+  // size = 2^22: hd = 2^32 -> CODE_BLOCK64 (0x13) + 8 bytes (0x00000001_00000000)
+  let b64 = MarshalEncoder::new()
+  b64.emit_block_header(0, 1 << 22)
+  assert_eq(b64.body.length(), 9)
+  assert_eq(b64.body[0], b'\x13')
+  assert_eq(b64.body[4], b'\x01')
+  assert_eq(b64.body[8], b'\x00')
 }

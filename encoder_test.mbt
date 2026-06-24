@@ -253,3 +253,14 @@ test "decode(encode(v)) == v for constructed values" {
     assert_eq(decoded, v)
   }
 }
+
+///|
+test "marshal empty MDoubleArray as the tag-0 atom" {
+  // OCaml represents an empty float array as Atom(0) == 0x80, not a
+  // Double_array_tag block.
+  let bytes = marshal(MDoubleArray([]))
+  assert_eq(bytes, hex_to_bytes("8495a6be0000000100000000000000000000000080"))
+  // and it decodes back to the empty tag-0 block
+  let (_, v) = Decoder::new(bytes).decode()
+  assert_eq(v, MBlock(tag=0, []))
+}

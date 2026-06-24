@@ -10,7 +10,7 @@ test "custom graph direction" (it : @test.Test) {
   ..add_node(id="middle", label="Middle")
   ..add_node(id="bottom", label="Bottom")
   ..add_edge(src="top", dst="middle", label="↓")
-  ..add_edge(src="middle", dst="bottom", label="↓")
+  .add_edge(src="middle", dst="bottom", label="↓")
   let dot = builder.to_dot()
   it.write(dot)
   it.snapshot(filename=it.name() + ".dot")
@@ -37,7 +37,7 @@ test "styled nodes with shapes and colors" (it : @test.Test) {
   ..add_styled_node(id="end", label="End", shape="doublecircle", color="red")
   ..add_edge(src="start", dst="process", label="")
   ..add_edge(src="process", dst="decision", label="")
-  ..add_edge(src="decision", dst="end", label="yes")
+  .add_edge(src="decision", dst="end", label="yes")
   let dot = builder.to_dot()
   it.write(dot)
   it.snapshot(filename=it.name() + ".dot")
@@ -65,7 +65,7 @@ test "styled edges with different styles" (it : @test.Test) {
     style="dashed",
     color="blue",
   )
-  ..add_styled_edge(
+  .add_styled_edge(
     src="b",
     dst="c",
     label="dotted",
@@ -87,7 +87,7 @@ test "bidirectional edges" (it : @test.Test) {
   ..add_node(id="database", label="Database")
   ..add_bidirectional_edge(node1="client", node2="server", label="HTTP")
   ..add_edge(src="server", dst="database", label="query")
-  ..add_bidirectional_edge(node1="server", node2="database", label="")
+  .add_bidirectional_edge(node1="server", node2="database", label="")
   let dot = builder.to_dot()
   it.write(dot)
   it.snapshot(filename=it.name() + ".dot")
@@ -108,7 +108,7 @@ test "subgraph clusters" (it : @test.Test) {
   ..add_edge(src="web1", dst="app1", label="")
   ..add_edge(src="web2", dst="app2", label="")
   ..add_edge(src="app1", dst="db", label="")
-  ..add_edge(src="app2", dst="db", label="")
+  .add_edge(src="app2", dst="db", label="")
   let dot = builder.to_dot()
   it.write(dot)
   it.snapshot(filename=it.name() + ".dot")

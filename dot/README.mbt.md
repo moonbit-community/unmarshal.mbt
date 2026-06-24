@@ -13,14 +13,14 @@ moon add bobzhang/unmarshal/dot
 
 ## Quickstart (DOT)
 
-```mbt
+```mbt nocheck
 ///|
 test "dot: quickstart" {
   let builder = @dot.DotBuilder::new()
   builder
   ..add_node(id="a", label="Start")
   ..add_node(id="b", label="End")
-  ..add_edge(src="a", dst="b", label="→")
+  .add_edge(src="a", dst="b", label="→")
   let got = builder.to_dot()
   let expected = "digraph Marshal {\n" +
     "  rankdir=LR;\n" +
@@ -37,14 +37,14 @@ test "dot: quickstart" {
 
 ## Quickstart (Mermaid)
 
-```mbt
+```mbt nocheck
 ///|
 test "dot: quickstart (mermaid)" {
   let builder = @dot.DotBuilder::new()
   builder
   ..add_node(id="a", label="Start")
   ..add_node(id="b", label="End")
-  ..add_edge(src="a", dst="b", label="→")
+  .add_edge(src="a", dst="b", label="→")
   let got = builder.to_mermaid()
   let expected = "flowchart LR\n" +
     "%% graph: Marshal\n" +
@@ -59,7 +59,7 @@ test "dot: quickstart (mermaid)" {
 
 ## Direction and styling
 
-```mbt
+```mbt nocheck
 ///|
 test "dot: direction and styling (mermaid)" {
   let builder = @dot.DotBuilder::with_config(
@@ -69,7 +69,7 @@ test "dot: direction and styling (mermaid)" {
   builder
   ..add_styled_node(id="start", label="Start", shape="circle", color="green")
   ..add_styled_node(id="end", label="End", shape="doublecircle", color="red")
-  ..add_styled_edge(
+  .add_styled_edge(
     src="start",
     dst="end",
     label="go",

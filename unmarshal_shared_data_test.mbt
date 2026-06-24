@@ -36,7 +36,10 @@ test "decode_shared_list_tuple" {
       #|      tag=0,
       #|      [MInt(1), MBlock(tag=0, [MInt(2), MBlock(tag=0, [MInt(3), MInt(0)])])],
       #|    ),
-      #|    MBlock(tag=0, [MInt(3), MInt(0)]),
+      #|    MBlock(
+      #|      tag=0,
+      #|      [MInt(1), MBlock(tag=0, [MInt(2), MBlock(tag=0, [MInt(3), MInt(0)])])],
+      #|    ),
       #|  ],
       #|)
     ),
@@ -55,7 +58,7 @@ test "decode_shared_nested_tuple" {
       #|  tag=0,
       #|  [
       #|    MBlock(tag=0, [MString(<Bytes: [0x74, 0x65, 0x73, 0x74]>), MInt(42)]),
-      #|    MString(<Bytes: [0x74, 0x65, 0x73, 0x74]>),
+      #|    MBlock(tag=0, [MString(<Bytes: [0x74, 0x65, 0x73, 0x74]>), MInt(42)]),
       #|  ],
       #|)
     ),
@@ -75,7 +78,7 @@ test "decode_triple_shared_middle" {
       #|  [
       #|    MString(<Bytes: [0x66, 0x69, 0x72, 0x73, 0x74]>),
       #|    MString(<Bytes: [0x6d, 0x69, 0x64, 0x64, 0x6c, 0x65]>),
-      #|    MString(<Bytes: [0x66, 0x69, 0x72, 0x73, 0x74]>),
+      #|    MString(<Bytes: [0x6d, 0x69, 0x64, 0x64, 0x6c, 0x65]>),
       #|  ],
       #|)
     ),
@@ -149,7 +152,13 @@ test "decode_complex_shared" {
       #|        MBlock(tag=0, [MInt(10), MBlock(tag=0, [MInt(20), MInt(0)])]),
       #|      ],
       #|    ),
-      #|    MBlock(tag=0, [MInt(2), MBlock(tag=0, [MInt(20), MInt(0)])]),
+      #|    MBlock(
+      #|      tag=0,
+      #|      [
+      #|        MInt(2),
+      #|        MBlock(tag=0, [MInt(10), MBlock(tag=0, [MInt(20), MInt(0)])]),
+      #|      ],
+      #|    ),
       #|  ],
       #|)
     ),

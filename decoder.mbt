@@ -172,17 +172,26 @@ fn Decoder::add_shared_object(state : Decoder, value : MarshalValue) -> Unit {
 /// 
 /// ## Parameters
 /// - `state`: Decoder state containing the shared object table
-/// - `index`: Zero-based index of the object to retrieve
-/// 
+/// - `distance`: Backward distance to the target object (>= 1)
+///
 /// ## Returns
-/// The MarshalValue at the specified index
-/// 
+/// The MarshalValue referenced by the shared pointer
+///
 /// ## Panics
-/// Aborts if the index is out of bounds (invalid shared reference)
-fn get_shared_object(state : Decoder, index : Int) -> MarshalValue raise {
-  if index >= state.object_array.length() {
+/// Aborts if the distance is out of bounds (invalid shared reference)
+///
+/// ## Format note
+/// OCaml encodes shared references as a *backward distance* from the current
+/// object counter, not as an absolute forward index. At the point a shared
+/// reference is read, `object_array` holds exactly the objects registered so
+/// far (this count equals `obj_counter` in OCaml's runtime), so the target is
+/// `object_array.length() - distance`. See `runtime/intern.c` in the OCaml
+/// sources: `v = intern_obj_table[obj_counter - ofs]`.
+fn get_shared_object(state : Decoder, distance : Int) -> MarshalValue raise {
+  let index = state.object_array.length() - distance
+  if distance < 1 || index < 0 {
     fail(
-      "Invalid shared object reference: index \{index} >= \{state.object_array.length()}",
+      "Invalid shared object reference: distance \{distance}, table size \{state.object_array.length()}",
     )
   }
   state.object_array[index]

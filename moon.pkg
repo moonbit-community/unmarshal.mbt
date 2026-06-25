@@ -1,19 +1,3 @@
 import {
-  "bobzhang/unmarshal/dot",
   "moonbitlang/core/debug",
 }
-
-options(
-  "pre-build": [
-    {
-      "command": ":embed --input $input --binary --output $output --name unmarshal_blob",
-      "input": "unmarshal.mi",
-      "output": "unmarshal_blob_test.mbt",
-    },
-    {
-      "command": ":embed --input $input --binary --output $output --name unmarshal_core",
-      "input": "unmarshal.core",
-      "output": "unmarshal_core_test.mbt",
-    },
-  ],
-)

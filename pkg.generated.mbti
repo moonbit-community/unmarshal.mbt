@@ -6,20 +6,11 @@ import {
 }
 
 // Values
-pub fn marshal(MarshalValue) -> Bytes raise
-
-pub fn marshal_to_dot(MarshalValue) -> String
 
 // Errors
 
 // Types and methods
-type Decoder
-pub fn Decoder::decode(Self) -> (MarshalHeader, MarshalValue) raise
-pub fn Decoder::decode_header(Self) -> MarshalHeader raise
-pub fn Decoder::decode_value(Self) -> MarshalValue raise
-pub fn Decoder::new(Bytes) -> Self
-
-pub struct MarshalHeader {
+pub(all) struct MarshalHeader {
   magic : UInt
   data_len : Int
   num_objects : Int

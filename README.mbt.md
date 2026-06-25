@@ -34,6 +34,20 @@ Add this package to your MoonBit project:
 moon add bobzhang/unmarshal
 ```
 
+### Packages
+
+The module is split so you can depend on only what you need:
+
+| Package | Provides |
+| --- | --- |
+| `bobzhang/unmarshal` | shared value model: `MarshalValue`, `MarshalHeader` |
+| `bobzhang/unmarshal/decoder` | `Decoder` (decode marshal bytes) |
+| `bobzhang/unmarshal/encoder` | `marshal` (encode to marshal bytes) |
+| `bobzhang/unmarshal/viz` | `marshal_to_dot` (Graphviz visualization) |
+| `bobzhang/unmarshal/dot` | small Graphviz/Mermaid graph builder |
+
+Imported as `@unmarshal`, `@decoder`, `@encoder`, `@viz` respectively.
+
 ## Usage
 
 ### Encoding (Marshaling)
@@ -49,10 +63,10 @@ test "marshal_round_trip" {
     @unmarshal.MInt(42),
     @unmarshal.MString(b"hi"),
   ])
-  let bytes = @unmarshal.marshal(value)
+  let bytes = @encoder.marshal(value)
 
   // Decoding the bytes gives the value back.
-  let (_, decoded) = @unmarshal.Decoder::new(bytes).decode()
+  let (_, decoded) = @decoder.Decoder::new(bytes).decode()
   inspect(
     decoded,
     content=(
@@ -79,7 +93,7 @@ test "basic_usage" {
      b'\x00', b'\x00', b'\x00', b'\x00', // Size 64: 0
      b'\x41', // Data: small int 1
   ]
-  let decoder = @unmarshal.Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (header, value) = decoder.decode()
 
   // Verify the result
@@ -101,7 +115,7 @@ test "decode_integers" {
     b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00',
     b'\x00', b'\x00', b'\x6a', // 0x40 + 42 = 0x6a
   ]
-  let decoder = @unmarshal.Decoder::new(small_int_data)
+  let decoder = @decoder.Decoder::new(small_int_data)
   let (_, value) = decoder.decode()
   inspect(value, content="MInt(42)")
 }
@@ -119,7 +133,7 @@ test "decode_strings" {
     b'\x00', b'\x02', b'\x25', // PREFIX_SMALL_STRING + 5
      b'\x48', b'\x65', b'\x6c', b'\x6c', b'\x6f', // "Hello"
   ]
-  let decoder = @unmarshal.Decoder::new(string_data)
+  let decoder = @decoder.Decoder::new(string_data)
   let (_, value) = decoder.decode()
   inspect(
     value,
@@ -143,7 +157,7 @@ test "decode_tuple" {
      b'\x41', // Small int 1
      b'\x42', // Small int 2
   ]
-  let decoder = @unmarshal.Decoder::new(tuple_data)
+  let decoder = @decoder.Decoder::new(tuple_data)
   let (_, value) = decoder.decode()
   match value {
     @unmarshal.MBlock(tag~, fields) => {
@@ -172,7 +186,7 @@ test "decode_float_array" {
     // Second double: 2.71 (little-endian)
      b'\x29', b'\x5c', b'\x8f', b'\xc2', b'\xf5', b'\xa8', b'\x05', b'\x40',
   ]
-  let decoder = @unmarshal.Decoder::new(float_array_data)
+  let decoder = @decoder.Decoder::new(float_array_data)
   let (_, value) = decoder.decode()
   match value {
     @unmarshal.MDoubleArray(arr) => {
@@ -201,7 +215,7 @@ test "decode_int32" {
      b'\x5f', b'\x69', b'\x00', // "_i" identifier (null-terminated)
      b'\x00', b'\x00', b'\x00', b'\x2a', // 42 in big-endian
   ]
-  let decoder = @unmarshal.Decoder::new(int32_data)
+  let decoder = @decoder.Decoder::new(int32_data)
   let (_, value) = decoder.decode()
   match value {
     @unmarshal.MCustom(id, data) => {
@@ -227,7 +241,7 @@ test "decode_int64" {
      b'\x5f', b'\x6a', b'\x00', // "_j" identifier (null-terminated)
      b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x0f', b'\x42', b'\x40', // 1000000
   ]
-  let decoder = @unmarshal.Decoder::new(int64_data)
+  let decoder = @decoder.Decoder::new(int64_data)
   let (_, value) = decoder.decode()
   match value {
     @unmarshal.MCustom(id, [i64be(val)]) => {
@@ -248,7 +262,7 @@ test "decode_nativeint" {
      b'\x5f', b'\x6e', b'\x00', // "_n" identifier (null-terminated)
      b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x2a', // 42
   ]
-  let decoder = @unmarshal.Decoder::new(nativeint_data)
+  let decoder = @decoder.Decoder::new(nativeint_data)
   let (_, value) = decoder.decode()
   match value {
     @unmarshal.MCustom(id, [i64be(val)]) => {
@@ -282,7 +296,7 @@ test "shared_references" {
      b'\x72', b'\x65', b'\x64', // "ed"
      b'\x04', b'\x01', // SHARED8, index 1
   ]
-  let decoder = @unmarshal.Decoder::new(shared_data)
+  let decoder = @decoder.Decoder::new(shared_data)
   let (_, value) = decoder.decode()
   match value {
     @unmarshal.MBlock(tag~, fields) => {

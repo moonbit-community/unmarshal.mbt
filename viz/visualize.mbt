@@ -1,3 +1,8 @@
+// Shared value model lives in the root `bobzhang/unmarshal` package.
+
+///|
+using @unmarshal {type MarshalValue}
+
 ///|
 /// Convert MarshalValue to Graphviz DOT format for visualization
 

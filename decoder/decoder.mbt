@@ -1,3 +1,8 @@
+// Shared value model lives in the root `bobzhang/unmarshal` package.
+
+///|
+using @unmarshal {type MarshalValue, type MarshalHeader}
+
 // Prefix tags for compact representations
 
 ///|
@@ -433,7 +438,7 @@ fn Decoder::decode_string_with_length(
   let string_bytes = view[:len]
   let remaining = view[len:]
   self.update_view(remaining)
-  let marshal_value = MString(string_bytes.to_owned())
+  let marshal_value : MarshalValue = MString(string_bytes.to_owned())
   self.add_shared_object(marshal_value)
   marshal_value
 }
@@ -485,7 +490,7 @@ fn Decoder::decode_double(
   self : Self,
   is_big_endian : Bool,
 ) -> MarshalValue raise {
-  let marshal_value = MFloat(
+  let marshal_value : MarshalValue = MFloat(
     self.read_double_bits(is_big_endian).reinterpret_as_double(),
   )
   self.add_shared_object(marshal_value)
@@ -505,7 +510,7 @@ fn Decoder::decode_double_array(
       self.read_double_bits(is_big_endian).reinterpret_as_double()
     }
   ]
-  let marshal_value = MDoubleArray(doubles)
+  let marshal_value : MarshalValue = MDoubleArray(doubles)
   self.add_shared_object(marshal_value)
   marshal_value
 }
@@ -523,7 +528,7 @@ fn Decoder::decode_block_with_tag_size(
   // `obj_counter++`), mirrored by `extern.c` (atoms are not recorded). Counting
   // an atom here would shift every later shared reference by one.
   let fields = []
-  let marshal_value = MBlock(tag~, fields)
+  let marshal_value : MarshalValue = MBlock(tag~, fields)
   if size > 0 {
     self.add_shared_object(marshal_value)
   }
@@ -594,7 +599,7 @@ fn Decoder::read_custom_payload(
   }
   let data_bytes = view[:data_length].to_owned()
   self.update_view(view[data_length:])
-  let marshal_value = MCustom(identifier, data_bytes)
+  let marshal_value : MarshalValue = MCustom(identifier, data_bytes)
   self.add_shared_object(marshal_value)
   marshal_value
 }

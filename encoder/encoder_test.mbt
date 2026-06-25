@@ -3,16 +3,23 @@
 // round-trip proves the encoder reproduces OCaml's exact bytes, including the
 // header (data length, object count, heap-word sizes), smallest-fit encodings,
 // and backward-distance shared references.
+//
+// Fixtures are stored as hex strings (long byte arrays are error-prone to hand
+// transcribe). Decoding here uses the sibling `decoder` package.
+
+// Shared value model lives in the root `bobzhang/unmarshal` package.
+
+///|
+using @unmarshal {type MarshalValue}
 
 ///|
 fn enc_roundtrip(data : Bytes) -> Bytes raise {
-  let (_, value) = Decoder::new(data).decode()
+  let (_, value) = @decoder.Decoder::new(data).decode()
   marshal(value)
 }
 
 ///|
-/// Parses a contiguous lowercase hex string into Bytes (fixtures are stored as
-/// hex to avoid transcription errors in long byte arrays).
+/// Parses a contiguous lowercase hex string into Bytes.
 fn hex_to_bytes(s : String) -> Bytes {
   fn nib(u : Int) -> Int {
     if u >= 48 && u <= 57 {
@@ -38,70 +45,75 @@ fn assert_roundtrip(hex : String) -> Unit raise {
   assert_eq(enc_roundtrip(data), data)
 }
 
-// --- Shared / atom fixtures (from marshal_data_test.mbt and
-// unmarshal_shared_realworld_test.mbt; all genuine OCaml output) ---
+// --- Shared / atom fixtures (genuine OCaml output) ---
 
 ///|
 test "encode round-trips shared string tuple" {
-  assert_eq(enc_roundtrip(shared_string_tuple_data), shared_string_tuple_data)
+  assert_roundtrip(
+    "8495a6be0000000a000000020000000600000005a0267368617265640401",
+  )
 }
 
 ///|
 test "encode round-trips shared list tuple" {
-  assert_eq(enc_roundtrip(shared_list_tuple_data), shared_list_tuple_data)
+  assert_roundtrip(
+    "8495a6be0000000a000000040000000c0000000ca0a041a042a043400403",
+  )
 }
 
 ///|
 test "encode round-trips shared nested tuple" {
-  assert_eq(enc_roundtrip(shared_nested_tuple_data), shared_nested_tuple_data)
+  assert_roundtrip(
+    "8495a6be0000000a000000030000000900000008a0a024746573746a0402",
+  )
 }
 
 ///|
 test "encode round-trips triple shared middle" {
-  assert_eq(enc_roundtrip(triple_shared_middle_data), triple_shared_middle_data)
+  assert_roundtrip(
+    "8495a6be00000010000000030000000a00000008b0256669727374266d6964646c650401",
+  )
 }
 
 ///|
 test "encode round-trips list with shared elements" {
-  assert_eq(enc_roundtrip(list_with_shared_data), list_with_shared_data)
+  assert_roundtrip(
+    "8495a6be0000000d000000040000000c0000000ba024656c656da00402a0040340",
+  )
 }
 
 ///|
 test "encode round-trips complex shared" {
-  assert_eq(enc_roundtrip(complex_shared_data), complex_shared_data)
+  assert_roundtrip(
+    "8495a6be0000000c000000050000000f0000000fa0a041a04aa05440a0420403",
+  )
 }
 
 ///|
 test "encode round-trips rw shared string quad" {
-  assert_eq(
-    enc_roundtrip(rw_shared_string_quad_data),
-    rw_shared_string_quad_data,
+  assert_roundtrip(
+    "8495a6be0000000e000000040000000c0000000bc02161256f63616d6c2262620402",
   )
 }
 
 ///|
 test "encode round-trips rw shared tuple triple" {
-  assert_eq(
-    enc_roundtrip(rw_shared_tuple_triple_data),
-    rw_shared_tuple_triple_data,
-  )
+  assert_roundtrip("8495a6be00000008000000020000000700000007b0a0474804010401")
 }
 
 ///|
 test "encode round-trips rw shared list after" {
-  assert_eq(enc_roundtrip(rw_shared_list_after_data), rw_shared_list_after_data)
+  assert_roundtrip(
+    "8495a6be0000000f000000070000001400000014b02178a041a042a04340a021790405",
+  )
 }
 
 ///|
 test "encode round-trips atom between shared" {
-  assert_eq(
-    enc_roundtrip(rw_atom_between_shared_data),
-    rw_atom_between_shared_data,
-  )
+  assert_roundtrip("8495a6be00000008000000020000000600000006b023616263800401")
 }
 
-// --- Scalar / double / boundary fixtures (genuine OCaml output, stored as
-// hex). Each exercises a specific encode branch. ---
+// --- Scalar / double / boundary fixtures (genuine OCaml output) ---
 
 ///|
 test "encode round-trips int16" {
@@ -147,13 +159,19 @@ test "encode round-trips compound (block32, ints, double, array, string8)" {
 
 ///|
 test "encode round-trips big string (string32)" {
-  assert_roundtrip(
-    "8495a6be00000131000000010000004d000000270a0000012c717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171",
-  )
+  // header (25 bytes) + 0x0a + u32 len 300 + 300 'q' payload
+  let arr : Array[Byte] = [
+    0x84, 0x95, 0xa6, 0xbe, 0x00, 0x00, 0x01, 0x31, 0x00, 0x00, 0x00, 0x01, 0x00,
+    0x00, 0x00, 0x4d, 0x00, 0x00, 0x00, 0x27, 0x0a, 0x00, 0x00, 0x01, 0x2c,
+  ]
+  for _ in 0..<300 {
+    arr.push(b'\x71')
+  }
+  let data = Bytes::from_array(arr)
+  assert_eq(enc_roundtrip(data), data)
 }
 
-// --- Custom block fixtures (genuine OCaml output: int32/int64/nativeint use
-// CODE_CUSTOM_FIXED) ---
+// --- Custom block fixtures (genuine OCaml output: CODE_CUSTOM_FIXED) ---
 
 ///|
 test "encode round-trips int32 custom" {
@@ -187,7 +205,7 @@ test "encode round-trips tuple with customs" {
   )
 }
 
-// --- Cycles, atoms, empty values, and integer boundaries (genuine OCaml) ---
+// --- Cycles, atoms, empty values, integer boundaries (genuine OCaml) ---
 
 ///|
 test "encode round-trips a cyclic list (self-reference)" {
@@ -224,9 +242,7 @@ test "encode round-trips integer boundaries" {
   assert_roundtrip("8495a6be000000050000000000000000000000000200008000")
 }
 
-// --- Reverse direction: decode(encode(v)) == v for constructed acyclic
-// values (validates that the encoder emits decodable, structure-preserving
-// output independent of any fixture). ---
+// --- Reverse direction: decode(encode(v)) == v for constructed values ---
 
 ///|
 test "decode(encode(v)) == v for constructed values" {
@@ -249,19 +265,17 @@ test "decode(encode(v)) == v for constructed values" {
     MBlock(tag=3, [MInt(7), MBlock(tag=0, [MInt(8), MInt(9)])]),
   ]
   for v in cases {
-    let (_, decoded) = Decoder::new(marshal(v)).decode()
+    let (_, decoded) = @decoder.Decoder::new(marshal(v)).decode()
     assert_eq(decoded, v)
   }
 }
 
 ///|
 test "marshal empty MDoubleArray as the tag-0 atom" {
-  // OCaml represents an empty float array as Atom(0) == 0x80, not a
-  // Double_array_tag block.
+  // OCaml represents an empty float array as Atom(0) == 0x80.
   let bytes = marshal(MDoubleArray([]))
   assert_eq(bytes, hex_to_bytes("8495a6be0000000100000000000000000000000080"))
-  // and it decodes back to the empty tag-0 block
-  let (_, v) = Decoder::new(bytes).decode()
+  let (_, v) = @decoder.Decoder::new(bytes).decode()
   assert_eq(v, MBlock(tag=0, []))
 }
 

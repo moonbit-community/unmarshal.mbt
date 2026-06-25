@@ -1,0 +1,18 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/unmarshal/viz"
+
+import {
+  "bobzhang/unmarshal",
+}
+
+// Values
+pub fn marshal_to_dot(@unmarshal.MarshalValue) -> String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

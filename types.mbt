@@ -4,7 +4,7 @@
 /// Contains metadata about the marshaled data including magic number for
 /// format validation, data length, and platform-specific size information.
 /// 
-pub struct MarshalHeader {
+pub(all) struct MarshalHeader {
   /// Format identifier (0x8495A6BE or 0x8495A6BF)  
   magic : UInt
   /// Length of data section (excluding 20-byte header)

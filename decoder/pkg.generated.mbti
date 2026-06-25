@@ -1,0 +1,22 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "bobzhang/unmarshal/decoder"
+
+import {
+  "bobzhang/unmarshal",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+type Decoder
+pub fn Decoder::decode(Self) -> (@unmarshal.MarshalHeader, @unmarshal.MarshalValue) raise
+pub fn Decoder::decode_header(Self) -> @unmarshal.MarshalHeader raise
+pub fn Decoder::decode_value(Self) -> @unmarshal.MarshalValue raise
+pub fn Decoder::new(Bytes) -> Self
+
+// Type aliases
+
+// Traits
+

@@ -9,6 +9,11 @@
 // constants assume a little-endian host (x86-64 / arm64), matching
 // `CODE_DOUBLE_NATIVE` on such platforms.
 
+// Shared value model lives in the root `bobzhang/unmarshal` package.
+
+///|
+using @unmarshal {type MarshalValue}
+
 ///|
 priv struct MarshalEncoder {
   body : Array[Byte]

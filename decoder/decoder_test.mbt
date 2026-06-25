@@ -1,14 +1,20 @@
+// Bring the shared value model into scope for all decoder test files (the
+// blackbox test package is separate from the library package).
+
+///|
+using @unmarshal {type MarshalValue}
+
 ///|
 test {
 
-  // ocaml 1 marshalled 
+  // ocaml 1 marshalled
   let data : Bytes = [
     b'\x84', b'\x95', b'\xa6', b'\xbe', b'\x00', b'\x00', b'\x00', b'\x01', b'\x00',
     b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00', b'\x00',
     b'\x00', b'\x00', b'\x41',
   ]
   println(data[20:])
-  let state = @unmarshal.Decoder::new(data)
+  let state = Decoder::new(data)
   let (a, b) = state.decode()
   //TODO:upstream Tuple2 impl ToJson
   json_inspect((a, b), content=[

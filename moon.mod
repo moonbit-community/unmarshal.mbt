@@ -1,6 +1,6 @@
 name = "bobzhang/unmarshal"
 
-version = "0.2.5"
+version = "0.3.0"
 
 readme = "README.md"
 

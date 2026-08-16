@@ -15,4 +15,3 @@ pub fn marshal(@unmarshal.MarshalValue) -> Bytes raise
 // Type aliases
 
 // Traits
-

@@ -18,6 +18,18 @@ pub(all) struct MarshalHeader {
 } derive(Debug, Eq, ToJson)
 
 ///|
+#deprecated
+pub extend MarshalHeader with @debug.Debug::{to_repr}
+
+///|
+#deprecated
+pub extend MarshalHeader with Eq::{not_equal, equal}
+
+///|
+#deprecated
+pub extend MarshalHeader with ToJson::{to_json}
+
+///|
 /// Represents all possible OCaml values that can be unmarshaled
 /// 
 /// This enum covers the complete range of OCaml data types that can be
@@ -49,11 +61,39 @@ pub(all) enum MarshalValue {
 } derive(Debug, Eq, ToJson, Hash)
 
 ///|
+#deprecated
+pub extend MarshalValue with @debug.Debug::{to_repr}
+
+///|
+#deprecated
+pub extend MarshalValue with Eq::{not_equal, equal}
+
+///|
+#deprecated
+pub extend MarshalValue with ToJson::{to_json}
+
+///|
+#deprecated
+pub extend MarshalValue with Hash::{hash, hash_combine}
+
+///|
 pub impl Show for MarshalHeader with fn output(self, logger) {
-  logger.write_string(@debug.render(self.to_repr(), max_depth=2147483647))
+  logger.write_string(
+    @debug.render(@debug.Debug::to_repr(self), max_depth=2147483647),
+  )
 }
 
 ///|
+#deprecated
+pub extend MarshalHeader with Show::{to_string, output}
+
+///|
 pub impl Show for MarshalValue with fn output(self, logger) {
-  logger.write_string(@debug.render(self.to_repr(), max_depth=2147483647))
+  logger.write_string(
+    @debug.render(@debug.Debug::to_repr(self), max_depth=2147483647),
+  )
 }
+
+///|
+#deprecated
+pub extend MarshalValue with Show::{to_string, output}

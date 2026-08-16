@@ -24,4 +24,3 @@ pub fn DotBuilder::with_config(graph_name~ : String, rankdir~ : String) -> Self
 // Type aliases
 
 // Traits
-

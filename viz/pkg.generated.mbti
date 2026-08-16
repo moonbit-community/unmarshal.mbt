@@ -15,4 +15,3 @@ pub fn marshal_to_dot(@unmarshal.MarshalValue) -> String
 // Type aliases
 
 // Traits
-

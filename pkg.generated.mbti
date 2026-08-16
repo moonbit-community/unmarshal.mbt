@@ -17,6 +17,18 @@ pub(all) struct MarshalHeader {
   size_32 : Int
   size_64 : Int
 } derive(Eq, ToJson, @debug.Debug)
+#deprecated
+pub fn MarshalHeader::equal(Self, Self) -> Bool
+#deprecated
+pub fn MarshalHeader::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn MarshalHeader::output(Self, &Logger) -> Unit
+#deprecated
+pub fn MarshalHeader::to_json(Self) -> Json
+#deprecated
+pub fn MarshalHeader::to_repr(Self) -> @debug.Repr
+#deprecated
+pub fn MarshalHeader::to_string(Self) -> String
 pub impl Show for MarshalHeader
 
 pub(all) enum MarshalValue {
@@ -27,9 +39,24 @@ pub(all) enum MarshalValue {
   MBlock(tag~ : Int, Array[MarshalValue])
   MCustom(String, Bytes)
 } derive(Eq, Hash, ToJson, @debug.Debug)
+#deprecated
+pub fn MarshalValue::equal(Self, Self) -> Bool
+#deprecated
+pub fn MarshalValue::hash(Self) -> Int
+#deprecated
+pub fn MarshalValue::hash_combine(Self, Hasher) -> Unit
+#deprecated
+pub fn MarshalValue::not_equal(Self, Self) -> Bool
+#deprecated
+pub fn MarshalValue::output(Self, &Logger) -> Unit
+#deprecated
+pub fn MarshalValue::to_json(Self) -> Json
+#deprecated
+pub fn MarshalValue::to_repr(Self) -> @debug.Repr
+#deprecated
+pub fn MarshalValue::to_string(Self) -> String
 pub impl Show for MarshalValue
 
 // Type aliases
 
 // Traits
-

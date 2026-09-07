@@ -137,7 +137,7 @@ struct Decoder {
 
 ///|
 pub fn Decoder::new(data : Bytes) -> Self {
-  Decoder::{ object_array: [], position: 0, data }
+  Decoder::{ object_array: [], position: 0, data, }
 }
 
 ///|
@@ -245,7 +245,7 @@ pub fn Decoder::decode_header(data : Self) -> MarshalHeader raise {
     ] => {
       // TODO(upstream): improve error message when missing `{` and `}`
       data.update_view(rest)
-      { magic, data_len, num_objects, size_32, size_64 }
+      { magic, data_len, num_objects, size_32, size_64, }
     }
     _ => fail("Failed to parse marshal header")
   }

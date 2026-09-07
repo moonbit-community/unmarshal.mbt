@@ -28,7 +28,7 @@ priv struct MarshalEncoder {
 
 ///|
 fn MarshalEncoder::new() -> Self {
-  { body: [], shared: [], obj_counter: 0, size_32: 0, size_64: 0 }
+  { body: [], shared: [], obj_counter: 0, size_32: 0, size_64: 0, }
 }
 
 // --- Low-level big-endian writers into the body buffer ---

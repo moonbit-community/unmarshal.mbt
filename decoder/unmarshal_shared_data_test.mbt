@@ -94,7 +94,7 @@ test "decode_list_with_shared_elements" {
 
   // Helper function to extract list elements
   fn extract_list_elements(v : MarshalValue) -> Array[String] {
-    let result = Array::new()
+    let result = Array()
     fn go(node : MarshalValue) -> Unit {
       match node {
         MBlock(tag~, fields) =>

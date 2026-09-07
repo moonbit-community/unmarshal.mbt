@@ -103,7 +103,7 @@ pub fn DotBuilder::add_node(
   id~ : String,
   label~ : String,
 ) -> Unit {
-  self.nodes.push({ id, label, shape: "", color: "" })
+  self.nodes.push({ id, label, shape: "", color: "", })
 }
 
 ///|
@@ -117,7 +117,7 @@ pub fn DotBuilder::add_styled_node(
   shape~ : String,
   color~ : String,
 ) -> Unit {
-  self.nodes.push({ id, label, shape, color })
+  self.nodes.push({ id, label, shape, color, })
 }
 
 ///|
@@ -128,7 +128,7 @@ pub fn DotBuilder::add_subgraph(
   label~ : String,
   nodes~ : Array[String],
 ) -> Unit {
-  self.subgraphs.push({ name, label, nodes })
+  self.subgraphs.push({ name, label, nodes, })
 }
 
 ///|
@@ -161,7 +161,7 @@ pub fn DotBuilder::add_styled_edge(
   style~ : String,
   color~ : String,
 ) -> Unit {
-  self.edges.push({ src, dst, label, style, color, bidirectional: false })
+  self.edges.push({ src, dst, label, style, color, bidirectional: false, })
 }
 
 ///|

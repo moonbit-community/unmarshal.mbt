@@ -4,7 +4,7 @@
 ///|
 test "decode_shared_string_tuple" {
   // Test tuple with same string shared: ("shared", "shared")
-  let decoder = Decoder::new(shared_string_tuple_data)
+  let decoder = @decoder.Decoder::new(shared_string_tuple_data)
   let (_, value) = decoder.decode()
   inspect(
     value,
@@ -23,7 +23,7 @@ test "decode_shared_string_tuple" {
 ///|
 test "decode_shared_list_tuple" {
   // Test tuple with shared list: ([1;2;3], [1;2;3])
-  let decoder = Decoder::new(shared_list_tuple_data)
+  let decoder = @decoder.Decoder::new(shared_list_tuple_data)
   let (_, value) = decoder.decode()
   // The second reference should be a shared reference to the first list
   inspect(
@@ -49,7 +49,7 @@ test "decode_shared_list_tuple" {
 ///|
 test "decode_shared_nested_tuple" {
   // Test tuple with shared nested tuple: (("test", 42), ("test", 42))
-  let decoder = Decoder::new(shared_nested_tuple_data)
+  let decoder = @decoder.Decoder::new(shared_nested_tuple_data)
   let (_, value) = decoder.decode()
   inspect(
     value,
@@ -68,7 +68,7 @@ test "decode_shared_nested_tuple" {
 ///|
 test "decode_triple_shared_middle" {
   // Test triple with shared middle: ("first", "middle", "middle")
-  let decoder = Decoder::new(triple_shared_middle_data)
+  let decoder = @decoder.Decoder::new(triple_shared_middle_data)
   let (_, value) = decoder.decode()
   inspect(
     value,
@@ -89,7 +89,7 @@ test "decode_triple_shared_middle" {
 test "decode_list_with_shared_elements" {
   // Test list with same string repeated: ["elem"; "elem"; "elem"]
   // The sharing could be at the string level or at the list node level
-  let decoder = Decoder::new(list_with_shared_data)
+  let decoder = @decoder.Decoder::new(list_with_shared_data)
   let (_, value) = decoder.decode()
 
   // Helper function to extract list elements
@@ -136,7 +136,7 @@ test "decode_list_with_shared_elements" {
 ///|
 test "decode_complex_shared" {
   // Test complex nested structure: ((1, [10;20]), (2, [10;20]))
-  let decoder = Decoder::new(complex_shared_data)
+  let decoder = @decoder.Decoder::new(complex_shared_data)
   let (_, value) = decoder.decode()
   // The list [10;20] should be shared between the two tuples
   inspect(
@@ -173,7 +173,7 @@ test "verify_shared_indices" {
 
   // Simple case: ("shared", "shared") 
   // The second occurrence is decoded from a shared reference but appears as the same string value
-  let decoder1 = Decoder::new(shared_string_tuple_data)
+  let decoder1 = @decoder.Decoder::new(shared_string_tuple_data)
   let (_, value1) = decoder1.decode()
 
   // Verify the structure - both strings have the same value
@@ -211,7 +211,7 @@ test "verify_shared_indices" {
   }
 
   // Complex case: verify shared list indices
-  let decoder2 = Decoder::new(shared_list_tuple_data)
+  let decoder2 = @decoder.Decoder::new(shared_list_tuple_data)
   let (_, value2) = decoder2.decode()
 
   // Just verify it's a tuple with two elements that are both lists

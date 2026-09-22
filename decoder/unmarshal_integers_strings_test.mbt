@@ -4,16 +4,16 @@
 ///|
 test "decode_small_integers" {
   // Test integers 0-63 which use single byte encoding
-  let decoder0 = Decoder::new(int_0_data)
+  let decoder0 = @decoder.Decoder::new(int_0_data)
   let (_, value0) = decoder0.decode()
   inspect(value0, content="MInt(0)")
-  let decoder1 = Decoder::new(int_1_data)
+  let decoder1 = @decoder.Decoder::new(int_1_data)
   let (_, value1) = decoder1.decode()
   inspect(value1, content="MInt(1)")
-  let decoder42 = Decoder::new(int_42_data)
+  let decoder42 = @decoder.Decoder::new(int_42_data)
   let (_, value42) = decoder42.decode()
   inspect(value42, content="MInt(42)")
-  let decoder63 = Decoder::new(int_63_data)
+  let decoder63 = @decoder.Decoder::new(int_63_data)
   let (_, value63) = decoder63.decode()
   inspect(value63, content="MInt(63)")
 }
@@ -21,16 +21,16 @@ test "decode_small_integers" {
 ///|
 test "decode_int8_range" {
   // Test integers that require CODE_INT8 encoding
-  let decoder100 = Decoder::new(int_100_data)
+  let decoder100 = @decoder.Decoder::new(int_100_data)
   let (_, value100) = decoder100.decode()
   inspect(value100, content="MInt(100)")
-  let decoder127 = Decoder::new(int_127_data)
+  let decoder127 = @decoder.Decoder::new(int_127_data)
   let (_, value127) = decoder127.decode()
   inspect(value127, content="MInt(127)")
-  let decoder_neg1 = Decoder::new(int_neg_1_data)
+  let decoder_neg1 = @decoder.Decoder::new(int_neg_1_data)
   let (_, value_neg1) = decoder_neg1.decode()
   inspect(value_neg1, content="MInt(-1)")
-  let decoder_neg128 = Decoder::new(int_neg_128_data)
+  let decoder_neg128 = @decoder.Decoder::new(int_neg_128_data)
   let (_, value_neg128) = decoder_neg128.decode()
   inspect(value_neg128, content="MInt(-128)")
 }
@@ -38,16 +38,16 @@ test "decode_int8_range" {
 ///|
 test "decode_int16_range" {
   // Test integers that require CODE_INT16 encoding
-  let decoder1000 = Decoder::new(int_1000_data)
+  let decoder1000 = @decoder.Decoder::new(int_1000_data)
   let (_, value1000) = decoder1000.decode()
   inspect(value1000, content="MInt(1000)")
-  let decoder32767 = Decoder::new(int_32767_data)
+  let decoder32767 = @decoder.Decoder::new(int_32767_data)
   let (_, value32767) = decoder32767.decode()
   inspect(value32767, content="MInt(32767)")
-  let decoder_neg1000 = Decoder::new(int_neg_1000_data)
+  let decoder_neg1000 = @decoder.Decoder::new(int_neg_1000_data)
   let (_, value_neg1000) = decoder_neg1000.decode()
   inspect(value_neg1000, content="MInt(-1000)")
-  let decoder_neg32768 = Decoder::new(int_neg_32768_data)
+  let decoder_neg32768 = @decoder.Decoder::new(int_neg_32768_data)
   let (_, value_neg32768) = decoder_neg32768.decode()
   inspect(value_neg32768, content="MInt(-32768)")
 }
@@ -55,16 +55,16 @@ test "decode_int16_range" {
 ///|
 test "decode_int32_range" {
   // Test integers that require CODE_INT32 encoding
-  let decoder100000 = Decoder::new(int_100000_data)
+  let decoder100000 = @decoder.Decoder::new(int_100000_data)
   let (_, value100000) = decoder100000.decode()
   inspect(value100000, content="MInt(100000)")
-  let decoder_max32 = Decoder::new(int_2147483647_data)
+  let decoder_max32 = @decoder.Decoder::new(int_2147483647_data)
   let (_, value_max32) = decoder_max32.decode()
   inspect(value_max32, content="MInt(2147483647)")
-  let decoder_neg100000 = Decoder::new(int_neg_100000_data)
+  let decoder_neg100000 = @decoder.Decoder::new(int_neg_100000_data)
   let (_, value_neg100000) = decoder_neg100000.decode()
   inspect(value_neg100000, content="MInt(-100000)")
-  let decoder_min32 = Decoder::new(int_neg_2147483648_data)
+  let decoder_min32 = @decoder.Decoder::new(int_neg_2147483648_data)
   let (_, value_min32) = decoder_min32.decode()
   inspect(value_min32, content="MInt(-2147483648)")
 }
@@ -72,7 +72,7 @@ test "decode_int32_range" {
 ///|
 test "decode_small_strings" {
   // Test strings that use PREFIX_SMALL_STRING encoding (< 32 chars)
-  let decoder_empty = Decoder::new(string_empty_data)
+  let decoder_empty = @decoder.Decoder::new(string_empty_data)
   let (_, value_empty) = decoder_empty.decode()
   inspect(
     value_empty,
@@ -80,7 +80,7 @@ test "decode_small_strings" {
       #|MString(<Bytes: []>)
     ),
   )
-  let decoder_a = Decoder::new(string_a_data)
+  let decoder_a = @decoder.Decoder::new(string_a_data)
   let (_, value_a) = decoder_a.decode()
   inspect(
     value_a,
@@ -88,7 +88,7 @@ test "decode_small_strings" {
       #|MString(<Bytes: [0x61]>)
     ),
   )
-  let decoder_hello = Decoder::new(string_hello_data)
+  let decoder_hello = @decoder.Decoder::new(string_hello_data)
   let (_, value_hello) = decoder_hello.decode()
   inspect(
     value_hello,
@@ -96,7 +96,7 @@ test "decode_small_strings" {
       #|MString(<Bytes: [0x48, 0x65, 0x6c, 0x6c, 0x6f]>)
     ),
   )
-  let decoder_31 = Decoder::new(string_31chars_data)
+  let decoder_31 = @decoder.Decoder::new(string_31chars_data)
   let (_, value_31) = decoder_31.decode()
   // Check it's 31 x's
   match value_31 {
@@ -112,7 +112,7 @@ test "decode_small_strings" {
 ///|
 test "decode_string8" {
   // Test strings that use CODE_STRING8 encoding (32-255 chars)
-  let decoder_32 = Decoder::new(string_32chars_data)
+  let decoder_32 = @decoder.Decoder::new(string_32chars_data)
   let (_, value_32) = decoder_32.decode()
   match value_32 {
     MString(bytes) => {
@@ -122,7 +122,7 @@ test "decode_string8" {
     }
     _ => abort("Expected MString")
   }
-  let decoder_100 = Decoder::new(string_100chars_data)
+  let decoder_100 = @decoder.Decoder::new(string_100chars_data)
   let (_, value_100) = decoder_100.decode()
   match value_100 {
     MString(bytes) => {
@@ -132,7 +132,7 @@ test "decode_string8" {
     }
     _ => abort("Expected MString")
   }
-  let decoder_255 = Decoder::new(string_255chars_data)
+  let decoder_255 = @decoder.Decoder::new(string_255chars_data)
   let (_, value_255) = decoder_255.decode()
   match value_255 {
     MString(bytes) => {
@@ -147,7 +147,7 @@ test "decode_string8" {
 ///|
 test "decode_string32" {
   // Test strings that use CODE_STRING32 encoding (> 255 chars)
-  let decoder_256 = Decoder::new(string_256chars_data)
+  let decoder_256 = @decoder.Decoder::new(string_256chars_data)
   let (_, value_256) = decoder_256.decode()
   match value_256 {
     MString(bytes) => {
@@ -157,7 +157,7 @@ test "decode_string32" {
     }
     _ => abort("Expected MString")
   }
-  let decoder_1000 = Decoder::new(string_1000chars_data)
+  let decoder_1000 = @decoder.Decoder::new(string_1000chars_data)
   let (_, value_1000) = decoder_1000.decode()
   match value_1000 {
     MString(bytes) => {
@@ -172,7 +172,7 @@ test "decode_string32" {
 ///|
 test "decode_special_strings" {
   // Test strings with special characters
-  let decoder_special = Decoder::new(string_special_data)
+  let decoder_special = @decoder.Decoder::new(string_special_data)
   let (_, value_special) = decoder_special.decode()
   inspect(
     value_special,
@@ -199,7 +199,7 @@ test "decode_special_strings" {
   )
 
   // Test Unicode string
-  let decoder_unicode = Decoder::new(string_unicode_data)
+  let decoder_unicode = @decoder.Decoder::new(string_unicode_data)
   let (_, value_unicode) = decoder_unicode.decode()
   match value_unicode {
     MString(bytes) => {
@@ -219,10 +219,10 @@ test "decode_special_strings" {
 ///|
 test "decode_booleans" {
   // Test boolean values (true = 1, false = 0)
-  let decoder_true = Decoder::new(bool_true_data)
+  let decoder_true = @decoder.Decoder::new(bool_true_data)
   let (_, value_true) = decoder_true.decode()
   inspect(value_true, content="MInt(1)") // true is represented as 1
-  let decoder_false = Decoder::new(bool_false_data)
+  let decoder_false = @decoder.Decoder::new(bool_false_data)
   let (_, value_false) = decoder_false.decode()
   inspect(value_false, content="MInt(0)") // false is represented as 0
 }
@@ -230,24 +230,24 @@ test "decode_booleans" {
 ///|
 test "decode_floats" {
   // Test floating point numbers
-  let decoder_pi = Decoder::new(float_pi_data)
+  let decoder_pi = @decoder.Decoder::new(float_pi_data)
   let (_, value_pi) = decoder_pi.decode()
   // First inspect the value to see what we get
   inspect(value_pi, content="MFloat(3.14159)")
-  let decoder_neg = Decoder::new(float_neg_data)
+  let decoder_neg = @decoder.Decoder::new(float_neg_data)
   let (_, value_neg) = decoder_neg.decode()
   inspect(value_neg, content="MFloat(-2.5)")
-  let decoder_zero = Decoder::new(float_zero_data)
+  let decoder_zero = @decoder.Decoder::new(float_zero_data)
   let (_, value_zero) = decoder_zero.decode()
   inspect(value_zero, content="MFloat(0)")
 }
 
 ///|
 test "decode_tuple" {
-  let decoder_1_2 = Decoder::new(tuple_1_2_data)
+  let decoder_1_2 = @decoder.Decoder::new(tuple_1_2_data)
   let (_, value_1_2) = decoder_1_2.decode()
   inspect(value_1_2, content="MBlock(tag=0, [MInt(1), MInt(2)])")
-  let decoder_hello_42 = Decoder::new(tuple_hello_42_data)
+  let decoder_hello_42 = @decoder.Decoder::new(tuple_hello_42_data)
   let (_, value_hello_42) = decoder_hello_42.decode()
   inspect(
     value_hello_42,
@@ -262,7 +262,7 @@ test "decode_tuple" {
 
 ///|
 test "decode_empty_list" {
-  let decoder = Decoder::new(empty_list_data)
+  let decoder = @decoder.Decoder::new(empty_list_data)
   let (_, value) = decoder.decode()
   // Empty list is represented as MInt(0) in OCaml
   inspect(value, content="MInt(0)")
@@ -270,7 +270,7 @@ test "decode_empty_list" {
 
 ///|
 test "decode_list_1_2" {
-  let decoder = Decoder::new(list_1_2_data)
+  let decoder = @decoder.Decoder::new(list_1_2_data)
   let (_, value) = decoder.decode()
   // List [1; 2] is encoded as a series of cons cells
   // [1; 2] = 1 :: 2 :: []

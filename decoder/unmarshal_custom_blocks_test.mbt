@@ -13,7 +13,7 @@ test "unmarshal custom block Int32 zero" {
      0x5f, 0x69, 0x00, // "_i" (null-terminated)
      0x00, 0x00, 0x00, 0x00, // Int32 value: 0
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (header, value) = decoder.decode()
   assert_eq(header.magic, 0x8495A6BE)
   assert_eq(header.data_len, 8)
@@ -39,7 +39,7 @@ test "unmarshal custom block Int32 value 42" {
      0x5f, 0x69, 0x00, // "_i" (null-terminated)
      0x00, 0x00, 0x00, 0x2a, // Int32 value: 42
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (header, value) = decoder.decode()
   assert_eq(header.magic, 0x8495A6BE)
   assert_eq(header.data_len, 8)
@@ -71,7 +71,7 @@ test "unmarshal custom block Int32 negative" {
      0x5f, 0x69, 0x00, // "_i" (null-terminated)
      0xff, 0xff, 0xff, 0xd6, // Int32 value: -42
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (_header, value) = decoder.decode()
   match value {
     MCustom(id, data) => {
@@ -95,7 +95,7 @@ test "unmarshal custom block Int64" {
      0x5f, 0x6a, 0x00, // "_j" (null-terminated)
      0x00, 0x00, 0x00, 0x00, 0x00, 0x0f, 0x42, 0x40, // Int64 value: 1000000
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (_header, value) = decoder.decode()
   match value {
     MCustom(id, data) => {
@@ -127,7 +127,7 @@ test "unmarshal custom block with length prefix" {
      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, // sz_64: in-memory size on 64-bit = 4
      0x12, 0x34, 0x56, 0x78, // Int32 value: 0x12345678
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (_header, value) = decoder.decode()
   match value {
     MCustom(id, data) => {
@@ -160,7 +160,7 @@ test "unmarshal tuple with custom blocks" {
      0x25, // Second element: small string length 5
      0x48, 0x65, 0x6c, 0x6c, 0x6f, // "Hello"
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (_header, value) = decoder.decode()
   match value {
     MBlock(tag~, fields) => {
@@ -202,7 +202,7 @@ test "unmarshal nativeint custom block (small value)" {
      0x01, // width tag: 1 => 4-byte int32
      0x00, 0x00, 0x00, 0x2a, // value 42
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (_header, value) = decoder.decode()
   match value {
     MCustom(id, data) => {
@@ -228,7 +228,7 @@ test "unmarshal nativeint custom block (large value)" {
      0x02, // width tag: 2 => 8-byte int64
      0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, // value 2^40
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (_header, value) = decoder.decode()
   match value {
     MCustom(id, data) => {
@@ -255,7 +255,7 @@ test "unmarshal custom block Int32 max value" {
      0x5f, 0x69, 0x00, // "_i" (null-terminated)
      0x7f, 0xff, 0xff, 0xff, // Int32 max value
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (_header, value) = decoder.decode()
   match value {
     MCustom(id, data) => {
@@ -279,7 +279,7 @@ test "unmarshal custom block Int32 min value" {
      0x5f, 0x69, 0x00, // "_i" (null-terminated)
      0x80, 0x00, 0x00, 0x00, // Int32 min value
   ])
-  let decoder = Decoder::new(data)
+  let decoder = @decoder.Decoder::new(data)
   let (_header, value) = decoder.decode()
   match value {
     MCustom(id, data) => {
@@ -305,7 +305,7 @@ test "real bigarray CODE_CUSTOM_LEN is rejected cleanly" {
     0x00, 0x00, 0x00, 0x28, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x03, 0x00,
     0x04, 0x00, 0x01, 0x02, 0x03,
   ])
-  let result : MarshalValue? = Some(Decoder::new(data).decode().1) catch {
+  let result : MarshalValue? = Some(@decoder.Decoder::new(data).decode().1) catch {
     _ => None
   }
   match result {

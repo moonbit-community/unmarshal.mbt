@@ -4,7 +4,7 @@
 ///|
 /// Test 1: Simple linear chain
 test "linear chain graph" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   builder
   ..add_node(id="a", label="Start")
   ..add_node(id="b", label="Middle")
@@ -19,7 +19,7 @@ test "linear chain graph" (it : @test.Test) {
 ///|
 /// Test 2: Binary tree structure
 test "binary tree graph" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   builder
   ..add_node(id="root", label="Root")
   ..add_node(id="left", label="Left Child")
@@ -38,7 +38,7 @@ test "binary tree graph" (it : @test.Test) {
 ///|
 /// Test 3: Cyclic graph (circular reference)
 test "cyclic graph with self-loop" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   builder
   ..add_node(id="a", label="Node A")
   ..add_node(id="b", label="Node B")
@@ -57,7 +57,7 @@ test "cyclic graph with self-loop" (it : @test.Test) {
 ///|
 /// Test 4: Star pattern (hub and spoke)
 test "star graph pattern" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   builder.add_node(id="hub", label="Central Hub")
   for i = 0; i < 5; i = i + 1 {
     let spoke_id = "spoke_\{i}"
@@ -72,7 +72,7 @@ test "star graph pattern" (it : @test.Test) {
 ///|
 /// Test 5: DAG (Directed Acyclic Graph) - dependency graph
 test "dependency dag" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   builder
   ..add_node(id="frontend", label="Frontend App")
   ..add_node(id="api", label="API Server")
@@ -92,7 +92,7 @@ test "dependency dag" (it : @test.Test) {
 ///|
 /// Test 6: Empty graph
 test "empty graph" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   let dot = builder.to_dot()
   it.write(dot)
   it.snapshot(filename=it.name() + ".dot")
@@ -101,7 +101,7 @@ test "empty graph" (it : @test.Test) {
 ///|
 /// Test 7: Graph with special characters in labels
 test "special characters in labels" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   builder
   ..add_node(id="n1", label="Label with \"quotes\"")
   ..add_node(id="n2", label="Label with <brackets>")
@@ -116,7 +116,7 @@ test "special characters in labels" (it : @test.Test) {
 ///|
 /// Test 8: Multi-edge graph (multiple edges between same nodes)
 test "multi-edge graph" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   builder
   ..add_node(id="alice", label="Alice")
   ..add_node(id="bob", label="Bob")
@@ -132,7 +132,7 @@ test "multi-edge graph" (it : @test.Test) {
 ///|
 /// Test 9: Fresh ID generation
 test "fresh_id generates unique ids" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   let id1 = builder.fresh_id()
   let id2 = builder.fresh_id()
   let id3 = builder.fresh_id()
@@ -146,7 +146,7 @@ test "fresh_id generates unique ids" (it : @test.Test) {
 ///|
 /// Test 10: Large graph stress test (100 nodes)
 test "large graph with 100 nodes" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   // Create a chain of 100 nodes
   for i = 0; i < 100; i = i + 1 {
     let node_id = "n\{i}"
@@ -163,7 +163,7 @@ test "large graph with 100 nodes" (it : @test.Test) {
 ///|
 /// Test 11: Complete graph K5 (all nodes connected to all others)
 test "complete graph k5" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   let nodes = ["a", "b", "c", "d", "e"]
   // Add all nodes
   for i = 0; i < nodes.length(); i = i + 1 {
@@ -185,7 +185,7 @@ test "complete graph k5" (it : @test.Test) {
 ///|
 /// Test 12: Unicode labels
 test "unicode in labels" (it : @test.Test) {
-  let builder = DotBuilder::new()
+  let builder = @dot.DotBuilder::new()
   builder
   ..add_node(id="emoji", label="😀 🎉 ✨")
   ..add_node(id="chinese", label="中文测试")

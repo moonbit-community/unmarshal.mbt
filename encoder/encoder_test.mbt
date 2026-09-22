@@ -15,7 +15,7 @@ using @unmarshal {type MarshalValue}
 ///|
 fn enc_roundtrip(data : Bytes) -> Bytes raise {
   let (_, value) = @decoder.Decoder::new(data).decode()
-  marshal(value)
+  @encoder.marshal(value)
 }
 
 ///|
@@ -265,7 +265,7 @@ test "decode(encode(v)) == v for constructed values" {
     MBlock(tag=3, [MInt(7), MBlock(tag=0, [MInt(8), MInt(9)])]),
   ]
   for v in cases {
-    let (_, decoded) = @decoder.Decoder::new(marshal(v)).decode()
+    let (_, decoded) = @decoder.Decoder::new(@encoder.marshal(v)).decode()
     assert_eq(decoded, v)
   }
 }
@@ -273,7 +273,7 @@ test "decode(encode(v)) == v for constructed values" {
 ///|
 test "marshal empty MDoubleArray as the tag-0 atom" {
   // OCaml represents an empty float array as Atom(0) == 0x80.
-  let bytes = marshal(MDoubleArray([]))
+  let bytes = @encoder.marshal(MDoubleArray([]))
   assert_eq(bytes, hex_to_bytes("8495a6be0000000100000000000000000000000080"))
   let (_, v) = @decoder.Decoder::new(bytes).decode()
   assert_eq(v, MBlock(tag=0, []))
@@ -282,7 +282,7 @@ test "marshal empty MDoubleArray as the tag-0 atom" {
 ///|
 test "marshal validates custom block payloads" {
   fn fails(v : MarshalValue) -> Bool {
-    let _ = marshal(v) catch { _ => return true }
+    let _ = @encoder.marshal(v) catch { _ => return true }
     false
   }
 

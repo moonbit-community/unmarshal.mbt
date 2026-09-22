@@ -14,7 +14,7 @@ test {
     b'\x00', b'\x00', b'\x41',
   ]
   println(data[20:])
-  let state = Decoder::new(data)
+  let state = @decoder.Decoder::new(data)
   let (a, b) = state.decode()
   //TODO:upstream Tuple2 impl ToJson
   json_inspect((a, b), content=[

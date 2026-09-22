@@ -34,7 +34,7 @@ test "decode real-world OCaml marshal data" {
   let marshal_data = unmarshal_blob[marshal_offset:].to_owned()
 
   // Decode both header and value
-  let decoder = Decoder::new(marshal_data)
+  let decoder = @decoder.Decoder::new(marshal_data)
   let (header, value) = decoder.decode()
 
   // Verify header is valid
@@ -81,7 +81,7 @@ test "decode real-world OCaml marshal data from unmarshal.core" {
   let marshal_data = unmarshal_core[marshal_offset:].to_owned()
 
   // Decode header only - avoid decoding full value due to very large circular structure
-  let decoder = Decoder::new(marshal_data)
+  let decoder = @decoder.Decoder::new(marshal_data)
   let header = decoder.decode_header()
 
   // Verify header is valid

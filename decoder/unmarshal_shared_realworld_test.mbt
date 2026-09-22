@@ -32,7 +32,7 @@ let rw_shared_list_after_data : Bytes = [
 
 ///|
 test "rw shared string at backward distance 2" {
-  let (_, value) = Decoder::new(rw_shared_string_quad_data).decode()
+  let (_, value) = @decoder.Decoder::new(rw_shared_string_quad_data).decode()
   // ("a", "ocaml", "bb", "ocaml") -- 4th element resolves to the shared "ocaml"
   inspect(
     value,
@@ -52,7 +52,7 @@ test "rw shared string at backward distance 2" {
 
 ///|
 test "rw shared tuple referenced twice" {
-  let (_, value) = Decoder::new(rw_shared_tuple_triple_data).decode()
+  let (_, value) = @decoder.Decoder::new(rw_shared_tuple_triple_data).decode()
   // ((7,8), (7,8), (7,8)) -- both later fields are backward refs (ofs=1)
   inspect(
     value,
@@ -71,7 +71,7 @@ test "rw shared tuple referenced twice" {
 
 ///|
 test "rw shared list at backward distance 5" {
-  let (_, value) = Decoder::new(rw_shared_list_after_data).decode()
+  let (_, value) = @decoder.Decoder::new(rw_shared_list_after_data).decode()
   // ("x", [1;2;3], ("y", [1;2;3])) -- nested ref resolves to the full list
   inspect(
     value,
@@ -114,7 +114,7 @@ let rw_atom_between_shared_data : Bytes = [
 
 ///|
 test "rw atom is not registered for sharing" {
-  let (_, value) = Decoder::new(rw_atom_between_shared_data).decode()
+  let (_, value) = @decoder.Decoder::new(rw_atom_between_shared_data).decode()
   // ("abc", [||], "abc") -- the 3rd field resolves past the atom to "abc"
   inspect(
     value,

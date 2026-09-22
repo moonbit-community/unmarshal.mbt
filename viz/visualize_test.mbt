@@ -7,7 +7,7 @@ test "marshal_to_dot with decoded int" {
   let data = b"\x84\x95\xA6\xBE\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x6A"
   let decoder = @decoder.Decoder::new(data)
   let (_, value) = decoder.decode() catch { _ => abort("decode failed") }
-  let dot = marshal_to_dot(value)
+  let dot = @viz.marshal_to_dot(value)
   inspect(dot.contains("Int: 42"), content="true")
   inspect(dot.contains("digraph Marshal"), content="true")
 }
@@ -18,7 +18,7 @@ test "marshal_to_dot with decoded string" {
   let data = b"\x84\x95\xA6\xBE\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x25Hello"
   let decoder = @decoder.Decoder::new(data)
   let (_, value) = decoder.decode() catch { _ => abort("decode failed") }
-  let dot = marshal_to_dot(value)
+  let dot = @viz.marshal_to_dot(value)
 
   // Debug: print the actual output
   inspect(
@@ -42,7 +42,7 @@ test "marshal_to_dot with decoded block" {
   let data = b"\x84\x95\xA6\xBE\x00\x00\x00\x03\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x82\x41\x42"
   let decoder = @decoder.Decoder::new(data)
   let (_, value) = decoder.decode() catch { _ => abort("decode failed") }
-  let dot = marshal_to_dot(value)
+  let dot = @viz.marshal_to_dot(value)
   inspect(dot.contains("Block(tag=0, fields=2)"), content="false")
   inspect(dot.contains("Int: 1"), content="false")
   inspect(dot.contains("[0]"), content="false")
@@ -53,7 +53,7 @@ test "dot output has valid structure" {
   let data = b"\x84\x95\xA6\xBE\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x6A"
   let decoder = @decoder.Decoder::new(data)
   let (_, value) = decoder.decode() catch { _ => abort("decode failed") }
-  let dot = marshal_to_dot(value)
+  let dot = @viz.marshal_to_dot(value)
 
   // Check DOT structure
   inspect(dot.contains("digraph Marshal {"), content="true")

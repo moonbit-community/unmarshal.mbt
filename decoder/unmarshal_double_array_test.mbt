@@ -3,7 +3,7 @@
 
 ///|
 test "decode_empty_float_array" {
-  let decoder = Decoder::new(float_array_empty_data)
+  let decoder = @decoder.Decoder::new(float_array_empty_data)
   let (_, value) = decoder.decode()
   // Empty float array is encoded as an empty block with tag 0 in OCaml
   inspect(value, content="MBlock(tag=0, [])")
@@ -11,7 +11,7 @@ test "decode_empty_float_array" {
 
 ///|
 test "decode_single_float_array" {
-  let decoder = Decoder::new(float_array_single_data)
+  let decoder = @decoder.Decoder::new(float_array_single_data)
   let (_, value) = decoder.decode()
   // Let's see what we actually get
   inspect(value, content="MDoubleArray([3.14])")
@@ -19,7 +19,7 @@ test "decode_single_float_array" {
 
 ///|
 test "decode_small_float_array" {
-  let decoder = Decoder::new(float_array_small_data)
+  let decoder = @decoder.Decoder::new(float_array_small_data)
   let (_, value) = decoder.decode()
   match value {
     MDoubleArray(arr) => {
@@ -37,7 +37,7 @@ test "decode_small_float_array" {
 
 ///|
 test "decode_medium_float_array" {
-  let decoder = Decoder::new(float_array_medium_data)
+  let decoder = @decoder.Decoder::new(float_array_medium_data)
   let (_, value) = decoder.decode()
   match value {
     MDoubleArray(arr) => {
@@ -54,7 +54,7 @@ test "decode_medium_float_array" {
 
 ///|
 test "decode_large_float_array" {
-  let decoder = Decoder::new(float_array_large_data)
+  let decoder = @decoder.Decoder::new(float_array_large_data)
   let (_, value) = decoder.decode()
   match value {
     MDoubleArray(arr) => {
@@ -75,7 +75,7 @@ test "decode_float_array_types" {
   // The actual encoding type (8-bit, 32-bit, 64-bit count) depends on array size
 
   // Empty array is encoded as an empty block with tag 0, not as MDoubleArray
-  let decoder1 = Decoder::new(float_array_empty_data)
+  let decoder1 = @decoder.Decoder::new(float_array_empty_data)
   let (_, value1) = decoder1.decode()
   match value1 {
     MBlock(tag~, fields) => {
@@ -86,7 +86,7 @@ test "decode_float_array_types" {
   }
 
   // Small array (< 256 elements) uses CODE_DOUBLE_ARRAY8
-  let decoder2 = Decoder::new(float_array_small_data)
+  let decoder2 = @decoder.Decoder::new(float_array_small_data)
   let (_, value2) = decoder2.decode()
   match value2 {
     MDoubleArray(arr) => assert_eq(arr.length(), 5)
@@ -94,7 +94,7 @@ test "decode_float_array_types" {
   }
 
   // Large array (>= 256 elements) uses CODE_DOUBLE_ARRAY32
-  let decoder3 = Decoder::new(float_array_large_data)
+  let decoder3 = @decoder.Decoder::new(float_array_large_data)
   let (_, value3) = decoder3.decode()
   match value3 {
     MDoubleArray(arr) => assert_eq(arr.length(), 300)
@@ -105,7 +105,7 @@ test "decode_float_array_types" {
 ///|
 test "decode_float_array_precision" {
   // Test that floating point values maintain reasonable precision
-  let decoder = Decoder::new(float_array_small_data)
+  let decoder = @decoder.Decoder::new(float_array_small_data)
   let (_, value) = decoder.decode()
   match value {
     MDoubleArray(arr) => {

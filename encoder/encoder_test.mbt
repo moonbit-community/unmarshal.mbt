@@ -21,7 +21,7 @@ fn enc_roundtrip(data : Bytes) -> Bytes raise {
 ///|
 /// Parses a contiguous lowercase hex string into Bytes.
 fn hex_to_bytes(s : String) -> Bytes {
-  fn nib(u : Int) -> Int {
+  fn nib(u : Int32) -> Int32 {
     if u >= 48 && u <= 57 {
       u - 48 // '0'..'9'
     } else if u >= 97 {

@@ -34,7 +34,7 @@ struct DotBuilder {
   nodes : Array[DotNode]
   edges : Array[DotEdge]
   subgraphs : Array[DotSubgraph]
-  mut next_id : Int
+  mut next_id : Int32
   graph_name : String
   rankdir : String // "TB", "LR", "BT", "RL"
   mut default_node_shape : String // "box", "circle", "ellipse", "diamond", etc.

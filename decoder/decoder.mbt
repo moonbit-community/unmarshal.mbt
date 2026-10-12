@@ -131,7 +131,7 @@ const CODE_CUSTOM_FIXED : Byte = 0x19
 ///|
 struct Decoder {
   object_array : Array[MarshalValue] // Shared object array - mutated via methods
-  mut position : Int // Current parsing position
+  mut position : Int32 // Current parsing position
   data : Bytes
 }
 
@@ -192,7 +192,7 @@ fn Decoder::add_shared_object(state : Decoder, value : MarshalValue) -> Unit {
 /// far (this count equals `obj_counter` in OCaml's runtime), so the target is
 /// `object_array.length() - distance`. See `runtime/intern.c` in the OCaml
 /// sources: `v = intern_obj_table[obj_counter - ofs]`.
-fn get_shared_object(state : Decoder, distance : Int) -> MarshalValue raise {
+fn get_shared_object(state : Decoder, distance : Int32) -> MarshalValue raise {
   let index = state.object_array.length() - distance
   if distance < 1 || index < 0 {
     fail(
@@ -262,7 +262,7 @@ pub fn Decoder::decode(self : Self) -> (MarshalHeader, MarshalValue) raise {
 pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
   match self.view() {
     // Small integers (0-63): encoded as PREFIX_SMALL_INT + value
-    [0x40..=0x7F as b, .. rest] => {
+    [0x40..<=0x7F as b, .. rest] => {
       self.update_view(rest)
       let value = b.to_int() - 0x40
       MInt(value)
@@ -293,7 +293,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
     }
 
     // Small strings (length < 32): PREFIX_SMALL_STRING + length
-    [0x20..=0x3F as b, .. rest] => {
+    [0x20..<=0x3F as b, .. rest] => {
       self.update_view(rest)
       let len = b.to_int() - 0x20
       self.decode_string_with_length(len)
@@ -317,7 +317,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
       self.decode_string_with_length(length.reinterpret_as_int64().to_int())
     }
     // Small blocks (tag < 16, size < 8): PREFIX_SMALL_BLOCK + tag + (size << 4)
-    [0x80..=0xFF as b, .. rest] => {
+    [0x80..<=0xFF as b, .. rest] => {
       self.update_view(rest)
       let byte_val = b.to_int() - 0x80
       let tag = byte_val & 0x0F // Lower 4 bits
@@ -429,7 +429,7 @@ pub fn Decoder::decode_value(self : Self) -> MarshalValue raise {
 ///|
 fn Decoder::decode_string_with_length(
   self : Self,
-  len : Int,
+  len : Int32,
 ) -> MarshalValue raise {
   let view = self.view()
   guard view.length() >= len else {
@@ -500,7 +500,7 @@ fn Decoder::decode_double(
 ///|
 fn Decoder::decode_double_array(
   self : Self,
-  count : Int,
+  count : Int32,
   is_big_endian : Bool,
 ) -> MarshalValue raise {
   // The comprehension evaluates left to right, which matters because
@@ -518,8 +518,8 @@ fn Decoder::decode_double_array(
 ///|
 fn Decoder::decode_block_with_tag_size(
   self : Self,
-  tag : Int,
-  size : Int,
+  tag : Int32,
+  size : Int32,
 ) -> MarshalValue raise {
   // Register the block (before decoding fields, so recursive/cyclic shared
   // references can point back to it) — but only if it is non-empty. OCaml does
@@ -557,7 +557,7 @@ fn Decoder::decode_block_with_tag_size(
 fn Decoder::custom_payload_length(
   self : Self,
   identifier : String,
-) -> Int raise {
+) -> Int32 raise {
   match identifier {
     "_i" => 4 // Int32: 4-byte big-endian value
     "_j" => 8 // Int64: 8-byte big-endian value

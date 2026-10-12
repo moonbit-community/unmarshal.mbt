@@ -6,15 +6,15 @@
 /// 
 pub(all) struct MarshalHeader {
   /// Format identifier (0x8495A6BE or 0x8495A6BF)  
-  magic : UInt
+  magic : UInt32
   /// Length of data section (excluding 20-byte header)
-  data_len : Int
+  data_len : Int32
   /// Number of objects that can be shared/referenced
-  num_objects : Int
+  num_objects : Int32
   /// Size of integers/pointers on 32-bit platforms
-  size_32 : Int
+  size_32 : Int32
   /// Size of integers/pointers on 64-bit platforms
-  size_64 : Int
+  size_64 : Int32
 } derive(Debug, Eq, ToJson)
 
 ///|
@@ -40,7 +40,7 @@ pub extend MarshalHeader with ToJson::{to_json}
 /// 
 pub(all) enum MarshalValue {
   /// OCaml integers (31-bit on 32-bit, 63-bit on 64-bit platforms)  
-  MInt(Int)
+  MInt(Int32)
   /// OCaml strings with UTF-8 encoding
   MString(Bytes) // OCaml string is Bytes
   /// OCaml floats (IEEE 754 double precision)  
@@ -50,7 +50,7 @@ pub(all) enum MarshalValue {
   /// - `MBlock(Int, Array[MarshalValue])`: Structured data with tag and fields
   /// - Used for tuples, records, variants, lists, arrays
   /// - Tag indicates the specific OCaml constructor or structure type
-  MBlock(tag~ : Int, Array[MarshalValue]) // tag, fields
+  MBlock(tag~ : Int32, Array[MarshalValue]) // tag, fields
   /// User-defined serializable objects (PLANNED)
   MCustom(String, Bytes) // Custom blocks (not yet implemented)
   /// Reference to shared object by index (PLANNED)

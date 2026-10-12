@@ -20,10 +20,10 @@ priv struct MarshalEncoder {
   // (node, position) for every recorded shareable object, in record order.
   // OCaml keeps an address-keyed hash table; a linear scan with
   // `physical_equal` is the simplest faithful equivalent (see `lookup`).
-  shared : Array[(MarshalValue, Int)]
-  mut obj_counter : Int // number of recorded objects (== OCaml obj_counter)
-  mut size_32 : Int // heap words if read back on a 32-bit platform
-  mut size_64 : Int // heap words if read back on a 64-bit platform
+  shared : Array[(MarshalValue, Int32)]
+  mut obj_counter : Int32 // number of recorded objects (== OCaml obj_counter)
+  mut size_32 : Int32 // heap words if read back on a 32-bit platform
+  mut size_64 : Int32 // heap words if read back on a 64-bit platform
 }
 
 ///|
@@ -34,18 +34,18 @@ fn MarshalEncoder::new() -> Self {
 // --- Low-level big-endian writers into the body buffer ---
 
 ///|
-fn MarshalEncoder::w8(self : Self, n : Int) -> Unit {
+fn MarshalEncoder::w8(self : Self, n : Int32) -> Unit {
   self.body.push((n & 0xFF).to_byte())
 }
 
 ///|
-fn MarshalEncoder::w16(self : Self, n : Int) -> Unit {
+fn MarshalEncoder::w16(self : Self, n : Int32) -> Unit {
   self.w8(n >> 8)
   self.w8(n)
 }
 
 ///|
-fn MarshalEncoder::w32(self : Self, n : Int) -> Unit {
+fn MarshalEncoder::w32(self : Self, n : Int32) -> Unit {
   self.w8(n >> 24)
   self.w8(n >> 16)
   self.w8(n >> 8)
@@ -71,7 +71,7 @@ fn MarshalEncoder::w_double(self : Self, d : Double) -> Unit {
 // --- Code-tag emitters (mirror extern.c) ---
 
 ///|
-fn MarshalEncoder::emit_int(self : Self, n : Int) -> Unit {
+fn MarshalEncoder::emit_int(self : Self, n : Int32) -> Unit {
   if n >= 0 && n < 0x40 {
     self.w8(0x40 + n) // PREFIX_SMALL_INT
   } else if n >= -128 && n < 128 {
@@ -138,7 +138,7 @@ fn MarshalEncoder::emit_double_array(self : Self, a : Array[Double]) -> Unit {
 /// In-memory heap size (`bytes_32`, `bytes_64`) of a supported custom block,
 /// used for the size accounting (NOT the serialized payload length). Matches
 /// the `custom_fixed_length` values in OCaml runtime/ints.c.
-fn custom_inmem_size(identifier : String) -> (Int, Int) raise {
+fn custom_inmem_size(identifier : String) -> (Int32, Int32) raise {
   match identifier {
     "_i" => (4, 4) // Int32
     "_j" => (8, 8) // Int64
@@ -195,8 +195,8 @@ fn MarshalEncoder::emit_custom(
 /// header word is `(size << 10) | tag` (GC color 0).
 fn MarshalEncoder::emit_block_header(
   self : Self,
-  tag : Int,
-  size : Int,
+  tag : Int32,
+  size : Int32,
 ) -> Unit {
   if tag < 16 && size < 8 {
     self.w8(0x80 + tag + (size << 4)) // PREFIX_SMALL_BLOCK
@@ -220,7 +220,7 @@ fn MarshalEncoder::emit_block_header(
 ///|
 /// Returns the recorded position of a physically-identical earlier object, or
 /// `None`. Uses `physical_equal` to match OCaml's address-based sharing.
-fn MarshalEncoder::lookup(self : Self, v : MarshalValue) -> Int? {
+fn MarshalEncoder::lookup(self : Self, v : MarshalValue) -> Int32? {
   for entry in self.shared {
     let (node, pos) = entry
     if physical_equal(node, v) {
@@ -237,7 +237,7 @@ fn MarshalEncoder::record(self : Self, v : MarshalValue) -> Unit {
 }
 
 ///|
-fn MarshalEncoder::emit_shared(self : Self, distance : Int) -> Unit {
+fn MarshalEncoder::emit_shared(self : Self, distance : Int32) -> Unit {
   if distance < 0x100 {
     self.w8(0x04) // CODE_SHARED8
     self.w8(distance)
@@ -322,7 +322,7 @@ pub fn marshal(value : MarshalValue) -> Bytes raise {
   let enc = MarshalEncoder::new()
   enc.encode(value)
   let out : Array[Byte] = []
-  fn push32(n : Int) {
+  fn push32(n : Int32) {
     out.push(((n >> 24) & 0xFF).to_byte())
     out.push(((n >> 16) & 0xFF).to_byte())
     out.push(((n >> 8) & 0xFF).to_byte())
